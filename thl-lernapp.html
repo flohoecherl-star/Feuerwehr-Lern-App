@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>THL · Lernapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C0E; --bg-elevated:#14181B; --bg-card:#181C1F;
+  --line:#262B2F; --line-soft:#1D2124;
+  --text:#E8E6E1; --text-dim:#8A9199; --text-faint:#565D63;
+  --yellow:#D9A62E; --yellow-dim:#6B5217;
+  --amber:#E8A33D; --teal:#3FA79A; --teal-dim:#245852; --red:#C1361B;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+body{padding-bottom:70px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);}
+h1,h2,h3{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em;}
+header.hero{padding:22px 18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101316,var(--bg));}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.hero-title h1{font-size:26px;color:var(--text);}
+.hero-title .eyebrow{margin-bottom:4px;}
+.gauge-wrap{position:relative;width:74px;height:74px;flex-shrink:0;}
+.gauge-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:var(--line);stroke-width:7;}
+.gauge-fill{fill:none;stroke:var(--yellow);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .6s ease;}
+.gauge-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--yellow);}
+.hero-sub{margin-top:10px;font-size:12.5px;color:var(--text-dim);}
+nav.tabs{display:flex;overflow-x:auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg-elevated);position:sticky;top:0;z-index:20;scrollbar-width:none;}
+nav.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.03em;padding:8px 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);white-space:nowrap;cursor:pointer;}
+.tab-btn.active{background:var(--yellow);color:#211804;border-color:var(--yellow);font-weight:600;}
+main{padding:16px 14px 30px;max-width:640px;margin:0 auto;}
+.view{display:none;}
+.view.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.mod-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.mod-card{display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;cursor:pointer;}
+.mod-card:active{border-color:var(--yellow-dim);}
+.mod-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);width:22px;flex-shrink:0;}
+.mod-info{flex:1;min-width:0;}
+.mod-info .mtitle{font-family:'Oswald',sans-serif;font-size:15px;font-weight:500;color:var(--text);}
+.mod-info .msub{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.mod-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.mod-check.done{background:var(--teal);border-color:var(--teal);}
+.mod-check.done::after{content:'✓';font-size:11px;color:#04211D;font-weight:700;}
+.mod-header{margin-bottom:14px;}
+.back-btn{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0 0 10px;display:flex;align-items:center;gap:4px;}
+.mod-header h2{font-size:22px;margin-bottom:4px;}
+.mod-header .msub{font-size:12.5px;color:var(--text-dim);}
+.block{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;margin-bottom:10px;}
+.block h3{font-size:14px;color:var(--yellow);margin-bottom:8px;letter-spacing:.02em;}
+.block h3.teal{color:var(--teal);}
+.block h3.red{color:var(--red);}
+.block h3.amber{color:var(--amber);}
+.block p{font-size:13.5px;line-height:1.55;color:var(--text);margin-bottom:6px;}
+.block ul{padding-left:18px;margin:4px 0;}
+.block li{font-size:13.5px;line-height:1.6;color:var(--text);margin-bottom:4px;}
+.block li b{color:var(--text);font-weight:600;}
+.block .note{font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic;}
+.warn-box{border-left:3px solid var(--red);background:rgba(193,54,27,.08);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:8px;}
+.warn-box p{font-size:12.5px;color:#E8B9AC;margin:0;}
+.warn-box .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:4px;}
+.figure{background:#0E1114;border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0;text-align:center;}
+.figure svg{max-width:100%;height:auto;}
+.figure-caption{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);margin-top:8px;letter-spacing:.02em;}
+.calc-box{background:#0E1114;border:1px solid var(--yellow-dim);border-radius:8px;padding:12px 14px;margin:10px 0;}
+.calc-box .calc-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--yellow);display:block;margin-bottom:6px;}
+.calc-box .calc-formula{font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--text);line-height:1.7;}
+.calc-box .calc-result{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--yellow);font-weight:600;margin-top:6px;}
+.mark-done-btn{width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--teal-dim);background:transparent;color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:.04em;cursor:pointer;margin-top:6px;}
+.mark-done-btn.is-done{background:var(--teal);color:#04211D;border-color:var(--teal);}
+.gefahr-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft);}
+.gefahr-item:last-child{border-bottom:none;}
+.gefahr-letter{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--yellow);width:26px;flex-shrink:0;}
+.gefahr-text b{display:block;font-size:13px;color:var(--text);}
+.gefahr-text span{font-size:12px;color:var(--text-dim);}
+.quiz-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.qf-chip{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:6px 10px;border-radius:14px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);cursor:pointer;}
+.qf-chip.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal-dim);}
+.quiz-start-btn{width:100%;padding:15px;background:var(--yellow);color:#211804;border:none;border-radius:var(--radius);font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+.quiz-progress{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:8px;display:flex;justify-content:space-between;}
+.q-card{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+.q-text{font-size:15px;line-height:1.5;margin-bottom:14px;color:var(--text);font-family:'Oswald',sans-serif;font-weight:400;}
+.q-opt{display:block;width:100%;text-align:left;padding:12px 13px;margin-bottom:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg-elevated);color:var(--text);font-size:13.5px;cursor:pointer;}
+.q-opt.correct{border-color:var(--teal);background:rgba(63,167,154,.12);color:var(--teal);}
+.q-opt.wrong{border-color:var(--red);background:rgba(193,54,27,.12);color:#E8998A;}
+.q-explain{font-size:12.5px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);line-height:1.5;}
+.q-next-btn{width:100%;padding:13px;margin-top:14px;background:var(--teal);color:#04211D;border:none;border-radius:8px;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+.quiz-result{text-align:center;padding:30px 16px;}
+.quiz-result .score{font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--yellow);font-weight:600;}
+.quiz-result .score-label{font-size:12px;color:var(--text-dim);margin-top:4px;}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg-elevated);border-top:1px solid var(--line);z-index:30;}
+.bn-btn{flex:1;padding:10px 4px 12px;text-align:center;background:none;border:none;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.02em;cursor:pointer;}
+.bn-btn.active{color:var(--yellow);}
+.bn-icon{display:block;font-size:18px;margin-bottom:3px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-top">
+    <div class="hero-title">
+      <div class="eyebrow">Technische Hilfeleistung · Lehrmeinung Bayern / AGBF</div>
+      <h1>THL</h1>
+    </div>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 80 80">
+        <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>
+        <circle id="gaugeFill" class="gauge-fill" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+      </svg>
+      <div class="gauge-pct" id="gaugePct">0%</div>
+    </div>
+  </div>
+  <div class="hero-sub" id="heroSub">Ausbildungsstand · 0 von 10 Modulen abgeschlossen</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="uebersicht">Module</button>
+  <button class="tab-btn" data-view="spickzettel">Spickzettel</button>
+  <button class="tab-btn" data-view="quiz">Prüfung</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-uebersicht">
+    <div class="mod-grid" id="modGrid"></div>
+  </section>
+
+  <section class="view" id="view-detail">
+    <button class="back-btn" onclick="showView('uebersicht')">← Alle Module</button>
+    <div class="mod-header">
+      <div class="eyebrow" id="detailNum"></div>
+      <h2 id="detailTitle"></h2>
+      <div class="msub" id="detailSub"></div>
+    </div>
+    <div id="detailBody"></div>
+    <button class="mark-done-btn" id="markDoneBtn">Als durchgearbeitet markieren</button>
+  </section>
+
+  <section class="view" id="view-spickzettel">
+    <div class="block">
+      <h3>Rettungsprioritäten bei THL</h3>
+      <ul>
+        <li>1. Eigenschutz</li>
+        <li>2. Absicherung der Einsatzstelle</li>
+        <li>3. Zugang zu betroffenen Personen</li>
+        <li>4. Patientenorientierte Rettung (Zusammenarbeit mit Rettungsdienst)</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3 class="teal">Rettungsgerät hydraulisch</h3>
+      <ul>
+        <li><b>Spreizer:</b> spreizt Bauteile auseinander, kann auch ziehen/quetschen</li>
+        <li><b>Schneidgerät:</b> trennt Blech, Holme, Säulen</li>
+        <li><b>Rettungszylinder:</b> drückt/stützt punktuell, z. B. beim Aufweiten von Hohlräumen</li>
+        <li><b>Kombigerät:</b> vereint Spreiz- und Schneidfunktion in einem Gerät</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3 class="amber">Fahrzeugsicherung</h3>
+      <ul>
+        <li>Handbremse setzen, Zündung ausschalten</li>
+        <li>Unterbaukeile gegen Wegrollen/Kippen</li>
+        <li>Batterie(n) trennen – bei E-/Hybridfahrzeugen besondere Vorsicht wegen Hochvoltkomponenten</li>
+        <li>Rettungskarte (Rescue Sheet) zur Fahrzeugidentifikation nutzen (Airbags, Verstärkungen, HV-Leitungen)</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3 class="red">Gefahren bei THL-Einsätzen</h3>
+      <div class="gefahr-item"><div class="gefahr-letter">1</div><div class="gefahr-text"><b>Rückstellkräfte</b><span>gespannte Bauteile, Federn, verformtes Blech</span></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">2</div><div class="gefahr-text"><b>Nicht ausgelöste Airbags</b><span>Auslösebereich beachten, Abstand halten</span></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">3</div><div class="gefahr-text"><b>Auslaufende Betriebsstoffe</b><span>Kraftstoff, Batteriesäure, Kühlmittel</span></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">4</div><div class="gefahr-text"><b>Hochvoltkomponenten</b><span>bei Hybrid-/Elektrofahrzeugen, Abstand zu orangefarbenen Leitungen</span></div></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-quiz">
+    <div id="quizIntro">
+      <div class="block">
+        <h3>Prüfungsmodus</h3>
+        <p>Fragen zu allen Modulen der technischen Hilfeleistung. Auswahl nach Themenbereich möglich.</p>
+      </div>
+      <div class="quiz-filter" id="quizFilter"></div>
+      <button class="quiz-start-btn" onclick="startQuiz()">Prüfung starten</button>
+    </div>
+    <div id="quizRunning" style="display:none;"></div>
+    <div id="quizDone" style="display:none;"></div>
+  </section>
+</main>
+
+<nav class="bottomnav">
+  <button class="bn-btn active" data-view="uebersicht" onclick="showView('uebersicht')"><span class="bn-icon">▤</span>Module</button>
+  <button class="bn-btn" data-view="spickzettel" onclick="showView('spickzettel')"><span class="bn-icon">◈</span>Spickzettel</button>
+  <button class="bn-btn" data-view="quiz" onclick="showView('quiz')"><span class="bn-icon">◉</span>Prüfung</button>
+</nav>
+
+<script>
+const MODULES = [
+{
+  id:"grundlagen", num:"01", title:"Grundlagen der THL",
+  sub:"Organisation · Sicherheit",
+  body:`
+  <div class="block">
+    <h3>Was zählt zur technischen Hilfeleistung?</h3>
+    <p>Alle Einsätze, bei denen die Feuerwehr technische Mittel einsetzt, um Menschen, Tiere oder Sachwerte aus Gefahrenlagen zu retten oder Gefahren zu beseitigen – klassisch Verkehrsunfälle, aber auch eingeklemmte Personen in Maschinen, Aufzugsnotfälle oder Sturmschäden.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Grundsätzliches Vorgehen</h3>
+    <ul>
+      <li>Erkundung vor Handeln – Lage, Gefahren, betroffene Personen erfassen</li>
+      <li>Absicherung der Einsatzstelle vor jeder weiteren Maßnahme</li>
+      <li>Parallele Zusammenarbeit mit dem Rettungsdienst</li>
+    </ul>
+  </div>`
+},
+{
+  id:"verkehrsunfall", num:"02", title:"Verkehrsunfall · Eingeklemmte Person",
+  sub:"Fahrzeugstabilisierung · Zugang",
+  body:`
+  <div class="block">
+    <h3>Ablauf</h3>
+    <ul>
+      <li>Fahrzeug stabilisieren (Unterbaukeile, Sicherung gegen Wegrollen/Kippen)</li>
+      <li>Zugang zur eingeklemmten Person schaffen, z. B. über Türöffnung oder Fensterentfernung</li>
+      <li>Fahrzeug elektrisch sichern (Zündung aus, Batterie trennen)</li>
+      <li>Betreuung der Person durch geschultes Personal während der technischen Rettung</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Rettungsöffnung schaffen</h3>
+    <p>Ziel ist eine ausreichend große Öffnung, um die Person schonend und unter Beachtung möglicher Verletzungen (insbesondere der Wirbelsäule) zu retten – Vorgehen wird eng mit dem Rettungsdienst abgestimmt.</p>
+  </div>`
+},
+{
+  id:"geraetekunde", num:"03", title:"Gerätekunde hydraulisches Rettungsgerät",
+  sub:"Spreizer · Schneidgerät · Zylinder",
+  body:`
+  <div class="block">
+    <h3>Geräteübersicht</h3>
+    <ul>
+      <li><b>Spreizer:</b> spreizt Bauteile auseinander, kann in Gegenrichtung auch ziehen oder quetschen</li>
+      <li><b>Schneidgerät:</b> trennt Blech, Säulen und Holme des Fahrzeugs</li>
+      <li><b>Rettungszylinder:</b> stützt oder drückt punktuell auseinander, z. B. beim Aufweiten von Hohlräumen</li>
+      <li><b>Kombigerät:</b> vereint Spreiz- und Schneidfunktion in einem Werkzeug</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="amber">Physik der hydraulischen Kraftübersetzung</h3>
+    <p>Hydraulische Rettungsgeräte nutzen das Prinzip von Pascal: Ein in einer Flüssigkeit erzeugter Druck breitet sich gleichmäßig in alle Richtungen aus. Durch die Kombination von kleiner Pumpenkolbenfläche und großer Arbeitskolbenfläche im Gerät wird eine enorme Kraftübersetzung erreicht.</p>
+  </div>
+  <div class="calc-box">
+    <span class="calc-label">Kraftübersetzung nach Pascal</span>
+    <div class="calc-formula">F<sub>Arbeit</sub> = p × A<sub>Arbeitskolben</sub></div>
+    <div class="calc-formula">Typischer Betriebsdruck: 630–720 bar; Spreizkraft moderner Geräte: bis &gt;100 kN</div>
+    <div class="calc-result">100 kN entsprechen etwa dem Gewicht von 10 Tonnen – konzentriert auf die Spreizerspitzen</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:6px;">Diese enorme Kraftkonzentration erklärt, warum selbst stark verformte, hochfeste Karosseriestähle kontrolliert gespreizt werden können – sie macht aber auch deutlich, warum Rückstellkräfte im Blech beim Lösen der Spannung so gefährlich werden können.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Antrieb</h3>
+    <p>Hydraulisches Rettungsgerät wird über ein Aggregat (Pumpe) mit Hydraulikdruck versorgt – akkubetriebene Geräte gewinnen zunehmend an Bedeutung für schnellen, kabelunabhängigen Einsatz.</p>
+  </div>`
+},
+{
+  id:"fahrzeugtechnik", num:"04", title:"Moderne Fahrzeugtechnik",
+  sub:"Airbags · Hybrid/Elektro",
+  body:`
+  <div class="block">
+    <h3 class="red">Airbags & Gurtstraffer</h3>
+    <p>Nicht ausgelöste Airbags und Gurtstraffer stellen ein Verletzungsrisiko dar. Der Auslösebereich ist zu beachten, Arbeiten in unmittelbarer Nähe möglichst zu vermeiden bzw. mit erhöhter Vorsicht durchzuführen.</p>
+  </div>
+  <div class="block">
+    <h3 class="amber">Physik des Insassenschutzes: Verzögerung und Energie</h3>
+    <p>Bei einem Aufprall muss die kinetische Energie des Fahrzeugs und der Insassen abgebaut werden – nach der Formel E<sub>kin</sub> = ½·m·v² steigt diese Energie quadratisch mit der Geschwindigkeit. Airbags und Gurtstraffer verlängern die Zeitspanne, über die der Körper des Insassen abgebremst wird, und reduzieren so die auf den Körper wirkende Spitzenkraft erheblich (F = Δp/Δt nach dem Impulserhaltungssatz). Ein pyrotechnischer Gurtstraffer strafft den Gurt in Millisekunden – dieselbe Pyrotechnik macht ein nicht ausgelöstes System auch nach dem Unfall potenziell noch gefährlich.</p>
+  </div>
+  <div class="calc-box">
+    <span class="calc-label">Kinetische Energie bei Aufprall (Größenordnung)</span>
+    <div class="calc-formula">E<sub>kin</sub> = ½ × m × v²</div>
+    <div class="calc-formula">Beispiel: 1500 kg × (14 m/s)² × 0,5 ≈ 147.000 J (bei ca. 50 km/h)</div>
+    <div class="calc-result">Diese Energie muss durch Knautschzone, Gurt und Airbag kontrolliert abgebaut werden</div>
+  </div>
+  <div class="block">
+    <h3 class="red">Hybrid- und Elektrofahrzeuge</h3>
+    <p>Hochvoltkomponenten (orangefarbene Leitungen) führen gefährliche Spannungen (typisch 100–800 V Gleichspannung). Sicherheitsabstand einhalten, Hochvoltsystem nach Herstellervorgabe deaktivieren lassen bzw. entsprechende Vorsichtsmaßnahmen treffen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Rettungskarte (Rescue Sheet)</h3>
+    <p>Fahrzeugspezifische Rettungskarten zeigen Lage von Airbags, Verstärkungen, Hochvoltleitungen und empfohlenen Schnittstellen – zentrale Informationsquelle vor Beginn der technischen Rettung.</p>
+  </div>`
+},
+{
+  id:"rettungstechniken", num:"05", title:"Rettungstechniken",
+  sub:"Tür · Dach · Schweller",
+  body:`
+  <div class="block">
+    <h3>Gängige Verfahren</h3>
+    <ul>
+      <li><b>Türöffnung:</b> klassischer erster Zugangsweg, ggf. mit Spreizer</li>
+      <li><b>Dachabnahme:</b> vollständige Entfernung des Dachs für maximalen Zugang</li>
+      <li><b>Schwellerschnitt/Sitzverstellung:</b> Vergrößerung des Raums im Fußbereich zur schonenden Rettung</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Wahl der Technik</h3>
+    <p>Die geeignete Technik richtet sich nach Verletzungsbild, Fahrzeugtyp und Zugänglichkeit – Abstimmung zwischen technischer Rettung und medizinischer Versorgung ist entscheidend.</p>
+  </div>`
+},
+{
+  id:"absicherung", num:"06", title:"Absicherung der Einsatzstelle",
+  sub:"Fahrzeugsicherung · Verkehr",
+  body:`
+  <div class="block">
+    <h3>Fahrzeugsicherung</h3>
+    <ul>
+      <li>Handbremse setzen, Zündung ausschalten</li>
+      <li>Unterbaukeile gegen Wegrollen oder Kippen einsetzen</li>
+      <li>Batterie trennen, bei E-/Hybridfahrzeugen besondere Vorsicht</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Verkehrsabsicherung</h3>
+    <p>Warnung des fließenden Verkehrs, Absperrung des Gefahrenbereichs, Bereitstellung von Brandschutz (Pulverlöscher/Schnellangriff) während der technischen Rettung als vorsorgliche Maßnahme.</p>
+  </div>`
+},
+{
+  id:"rettungsdienst", num:"07", title:"Zusammenarbeit mit dem Rettungsdienst",
+  sub:"Parallelrettung · Prioritäten",
+  body:`
+  <div class="block">
+    <h3>Parallelrettung</h3>
+    <p>Technische Rettung und medizinische Versorgung laufen möglichst gleichzeitig ab – die Feuerwehr schafft Zugang und Raum, während der Rettungsdienst die Person betreut und stabilisiert.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Abstimmung</h3>
+    <ul>
+      <li>Rettungsdienst entscheidet über medizinische Priorität und Rettungsweg</li>
+      <li>Feuerwehr passt technisches Vorgehen an die medizinischen Erfordernisse an</li>
+      <li>Klare Kommunikation zwischen beiden Einheiten während des gesamten Einsatzes</li>
+    </ul>
+  </div>`
+},
+{
+  id:"sonstige_lagen", num:"08", title:"THL bei sonstigen Lagen",
+  sub:"Maschinen · Aufzüge · Wasserschaden",
+  body:`
+  <div class="block">
+    <h3>Weitere Einsatzarten</h3>
+    <ul>
+      <li>Eingeklemmte Personen in Maschinen – vor Rettung Anlage sichern/abschalten</li>
+      <li>Aufzugsnotfälle – Grundlagen der Personenbefreiung, Zusammenarbeit mit Aufzugsnotdienst</li>
+      <li>Wasserschäden – Abpumpen, Ursache erkunden, Gebäudesicherung beachten</li>
+      <li>Tierrettung – Grundzüge der sicheren und tierschonenden Rettung</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Gemeinsamer Grundsatz</h3>
+    <p>Vor jeder technischen Maßnahme steht die Beurteilung der Gefahren für die eingesetzten Kräfte und die betroffene Person – erst dann erfolgt die eigentliche Rettung.</p>
+  </div>`
+},
+{
+  id:"gefahren", num:"09", title:"Gefahren bei THL-Einsätzen",
+  sub:"Rückstellkräfte · Betriebsstoffe",
+  body:`
+  <div class="block">
+    <h3 class="red">Zentrale Gefahren</h3>
+    <ul>
+      <li><b>Rückstellkräfte:</b> gespannte, verformte Bauteile können sich beim Schneiden/Spreizen plötzlich lösen</li>
+      <li><b>Nicht ausgelöste Airbags:</b> Auslösebereich meiden bzw. mit Vorsicht behandeln</li>
+      <li><b>Auslaufende Betriebsstoffe:</b> Kraftstoff, Batteriesäure, Kühlmittel – Rutsch- und Brandgefahr</li>
+      <li><b>Hochvoltkomponenten:</b> bei Hybrid-/Elektrofahrzeugen strikten Abstand zu orangefarbenen Leitungen einhalten</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Umgang mit den Gefahren</h3>
+    <p>Systematische Erkundung vor Beginn der technischen Rettung, Nutzung der Rettungskarte, klare Rollenverteilung im Trupp und permanente Beobachtung während der Maßnahme minimieren das Risiko.</p>
+  </div>`
+},
+{
+  id:"nachbereitung", num:"10", title:"Nachbereitung & Dokumentation",
+  sub:"Material · Einsatzbericht",
+  body:`
+  <div class="block">
+    <h3>Nach dem Einsatz</h3>
+    <ul>
+      <li>Hydraulisches Rettungsgerät reinigen, auf Beschädigungen und Dichtigkeit prüfen</li>
+      <li>Verbrauchtes Material (z. B. Unterbaukeile, Abdeckmaterial) ergänzen</li>
+      <li>Fahrzeug und Beladung für den nächsten Einsatz wieder einsatzbereit machen</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Dokumentation</h3>
+    <p>Einsatzverlauf, eingesetzte Technik und Besonderheiten werden im Einsatzbericht festgehalten – dient der Nachbereitung sowie ggf. der Auswertung für zukünftige Einsätze.</p>
+  </div>`
+},
+{
+  id:"hoehe_tiefe", num:"11", title:"Rettung aus Höhen und Tiefen",
+  sub:"Grundzüge",
+  body:`
+  <div class="block">
+    <h3>Grundprinzip</h3>
+    <p>Bei Rettung aus Höhen (z. B. Baustellen, Krananlagen) oder Tiefen (z. B. Schächte, Gruben) stehen Absturzsicherung der eigenen Kräfte und schonende Rettung der betroffenen Person im Vordergrund.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Grundausstattung</h3>
+    <p>Persönliche Absturzsicherung (Gurt, Verbindungsmittel), Rettungsgeräte wie Dreibein oder Seilzugsysteme kommen je nach Lage zum Einsatz – komplexere Lagen erfordern spezialisierte Höhenrettungskräfte.</p>
+  </div>`
+},
+{
+  id:"bergung", num:"12", title:"PKW-Bergung & Ladungssicherung",
+  sub:"Nach der Rettung",
+  body:`
+  <div class="block">
+    <h3>Bergung nach der Rettung</h3>
+    <p>Nach Abschluss der Personenrettung erfolgt die technische Bergung des Fahrzeugs – Aufrichten, Abschleppen oder Verladen, meist in Zusammenarbeit mit einem Abschleppunternehmen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Ladungssicherung</h3>
+    <p>Bei Unfällen mit Ladung (z. B. LKW) ist auf sichere Ladungssicherung zu achten, bevor das Fahrzeug bewegt wird – herabfallende oder verrutschende Ladung stellt eine erhebliche Gefahr dar.</p>
+  </div>`
+},
+{
+  id:"gefahrstoffaustritt", num:"13", title:"Gefahrstoffaustritt bei Unfällen",
+  sub:"Schnittstelle zu ABC-Einsätzen",
+  body:`
+  <div class="block">
+    <h3>Erkennung</h3>
+    <p>Bei Verkehrsunfällen mit Gefahrgutfahrzeugen oder auslaufenden Betriebsstoffen ist frühzeitig auf Kennzeichnung (Warntafeln, Gefahrzettel) zu achten – siehe auch die ABC-Grundlagen.</p>
+  </div>
+  <div class="block warn-box" style="border:1px solid var(--line);background:var(--bg-card);">
+    <h3 style="color:var(--yellow);margin-bottom:6px;">Vorgehen bei Verdacht</h3>
+    <p style="color:var(--text);">Bei Verdacht auf gefährlichen Stoffaustritt: Sicherheitsabstand einhalten, aus Luv nähern, ggf. Fachberater ABC/Gefahrgut hinzuziehen, bevor die technische Rettung unter zusätzlichen Schutzmaßnahmen fortgesetzt wird.</p>
+  </div>`
+},
+{
+  id:"sonderfahrzeuge_thl", num:"14", title:"Sonderfahrzeuge THL",
+  sub:"Rüstwagen · Kran",
+  body:`
+  <div class="block">
+    <h3>Rüstwagen (RW)</h3>
+    <p>Führt umfangreiches THL-Gerät mit: hydraulisches Rettungsgerät, Hebekissen, Stempel- und Absteifmaterial, Beleuchtung, Werkzeuge für Sonderlagen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Kranfahrzeuge / Abrollkipper</h3>
+    <p>Bei schweren Bergungen (z. B. LKW-Unfälle) können Kranfahrzeuge oder spezialisierte Abschleppunternehmen hinzugezogen werden – die Feuerwehr sichert währenddessen die Einsatzstelle ab.</p>
+  </div>`
+},
+{
+  id:"einsatzabschluss", num:"15", title:"Einsatzabschluss & Verkehrsfreigabe",
+  sub:"Übergabe · Freigabe",
+  body:`
+  <div class="block">
+    <h3>Übergabe der Einsatzstelle</h3>
+    <p>Nach Abschluss von Rettung und Bergung wird die Einsatzstelle i. d. R. an Polizei bzw. Straßenbaulastträger übergeben – Zuständigkeit für Reinigung der Fahrbahn und endgültige Verkehrsfreigabe liegt meist außerhalb der Feuerwehr.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Letzte Feuerwehraufgaben</h3>
+    <ul>
+      <li>Bindung auslaufender Betriebsstoffe (z. B. mit Bindemittel)</li>
+      <li>Kontrolle auf verbliebene Gefahren (scharfe Kanten, Splitter)</li>
+      <li>Rückbau der eigenen Absicherung erst nach Übernahme durch die Polizei</li>
+    </ul>
+  </div>`
+}
+];
+
+const QUIZ = [
+{m:"grundlagen",q:"Was zählt beispielhaft zur technischen Hilfeleistung?",o:["Nur Verkehrsunfälle","Verkehrsunfälle, eingeklemmte Personen, Aufzugsnotfälle, Sturmschäden u. a.","Nur Wohnungsbrände","Nur Wasserrettung"],c:1,e:"THL umfasst ein breites Spektrum technischer Rettungslagen."},
+{m:"grundlagen",q:"Was steht vor jeder technischen Maßnahme?",o:["Sofortiges Handeln ohne Erkundung","Erkundung von Lage, Gefahren und betroffenen Personen","Nur die Wasserversorgung sichern","Die Einsatzstelle verlassen"],c:1,e:"Erkundung vor Handeln ist ein Grundprinzip der THL."},
+{m:"verkehrsunfall",q:"Was ist der erste Schritt bei einem eingeklemmten Fahrzeuginsassen?",o:["Sofort das Dach entfernen","Fahrzeug stabilisieren","Die Person sofort herausziehen","Nur den Rettungsdienst rufen"],c:1,e:"Fahrzeugstabilisierung steht am Anfang der technischen Rettung."},
+{m:"verkehrsunfall",q:"Warum wird die Fahrzeugbatterie getrennt?",o:["Aus Umweltschutzgründen","Um elektrische Gefahren während der Rettung zu minimieren","Um den Motor zu schonen","Das ist nicht notwendig"],c:1,e:"Elektrische Sicherung reduziert Risiken während der technischen Rettung."},
+{m:"geraetekunde",q:"Was macht ein Spreizer?",o:["Er schneidet Blech","Er spreizt Bauteile auseinander und kann auch ziehen/quetschen","Er pumpt Wasser","Er misst Gefahrstoffe"],c:1,e:"Der Spreizer spreizt, zieht und quetscht Bauteile."},
+{m:"geraetekunde",q:"Wofür wird ein Rettungszylinder eingesetzt?",o:["Zum Schneiden von Blech","Zum punktuellen Stützen/Drücken, z. B. beim Aufweiten von Hohlräumen","Zur Wasserförderung","Zur Beleuchtung der Einsatzstelle"],c:1,e:"Rettungszylinder stützen oder drücken punktuell."},
+{m:"fahrzeugtechnik",q:"Woran erkennt man Hochvoltleitungen bei Hybrid-/Elektrofahrzeugen?",o:["An roter Farbe","An orangefarbener Ummantelung","An blauer Farbe","Sie sind nicht gekennzeichnet"],c:1,e:"Hochvoltleitungen sind typischerweise orange gekennzeichnet."},
+{m:"fahrzeugtechnik",q:"Wozu dient die Rettungskarte (Rescue Sheet)?",o:["Zur Parkplatzsuche","Zur Information über Airbags, Verstärkungen und Hochvoltleitungen","Als Fahrzeugschein-Ersatz","Zur Routenplanung"],c:1,e:"Die Rettungskarte liefert wichtige fahrzeugspezifische Sicherheitsinformationen."},
+{m:"fahrzeugtechnik",q:"Was ist bei nicht ausgelösten Airbags zu beachten?",o:["Sie sind ungefährlich","Auslösebereich meiden bzw. mit erhöhter Vorsicht behandeln","Sie müssen sofort ausgebaut werden","Sie betreffen nur Neufahrzeuge"],c:1,e:"Nicht ausgelöste Airbags bergen ein Verletzungsrisiko."},
+{m:"rettungstechniken",q:"Was ist die Dachabnahme?",o:["Entfernen von Reifen","Vollständige Entfernung des Fahrzeugdachs für maximalen Zugang","Ein Verfahren zur Wasserförderung","Eine Belüftungsmethode"],c:1,e:"Die Dachabnahme schafft maximalen Zugang zum Innenraum."},
+{m:"rettungstechniken",q:"Wovon hängt die Wahl der Rettungstechnik ab?",o:["Nur vom Fahrzeugalter","Von Verletzungsbild, Fahrzeugtyp und Zugänglichkeit","Von der Tageszeit","Von der Fahrzeugfarbe"],c:1,e:"Die Technik wird an Verletzungsbild und Situation angepasst."},
+{m:"absicherung",q:"Warum werden Unterbaukeile eingesetzt?",o:["Zur Dekoration","Gegen Wegrollen oder Kippen des Fahrzeugs","Zum Anheben des Fahrzeugs","Zur Wasserversorgung"],c:1,e:"Unterbaukeile sichern das Fahrzeug gegen unkontrollierte Bewegung."},
+{m:"absicherung",q:"Was gehört zur Absicherung der Einsatzstelle bei Verkehrsunfällen?",o:["Nur die Fahrzeugreinigung","Verkehrswarnung, Absperrung, Bereitstellung von Brandschutz","Nur die Dokumentation","Die sofortige Abfahrt weiterer Fahrzeuge"],c:1,e:"Verkehrsabsicherung und vorsorglicher Brandschutz sind zentrale Maßnahmen."},
+{m:"rettungsdienst",q:"Was bedeutet Parallelrettung?",o:["Zwei Fahrzeuge werden gleichzeitig gerettet","Technische Rettung und medizinische Versorgung laufen gleichzeitig ab","Zwei Rettungsdienste arbeiten unabhängig","Die Feuerwehr wartet auf den Rettungsdienst"],c:1,e:"Technische und medizinische Rettung erfolgen möglichst parallel."},
+{m:"rettungsdienst",q:"Wer entscheidet über die medizinische Priorität bei der Rettung?",o:["Der Maschinist","Der Rettungsdienst","Die Polizei","Der Fahrzeughersteller"],c:1,e:"Der Rettungsdienst bestimmt die medizinische Priorität und den Rettungsweg."},
+{m:"sonstige_lagen",q:"Was ist vor der Rettung einer Person aus einer Maschine wichtig?",o:["Die Maschine sichern/abschalten","Sofortige Rettung ohne Sicherung","Nur die Polizei informieren","Die Maschine weiterlaufen lassen"],c:0,e:"Die Anlage muss vor der Rettung gesichert bzw. abgeschaltet werden."},
+{m:"sonstige_lagen",q:"Womit arbeitet die Feuerwehr bei Aufzugsnotfällen häufig zusammen?",o:["Mit dem Wetterdienst","Mit dem Aufzugsnotdienst","Mit der Wasserwirtschaft","Mit dem Katastrophenschutz"],c:1,e:"Bei Aufzugsnotfällen erfolgt oft Zusammenarbeit mit dem Aufzugsnotdienst."},
+{m:"gefahren",q:"Was sind Rückstellkräfte bei THL-Einsätzen?",o:["Elektrische Ladungen im Fahrzeug","Gespannte, verformte Bauteile, die sich plötzlich lösen können","Rückwärtsfahrten des Fahrzeugs","Kräfte des Rettungsdienstes"],c:1,e:"Rückstellkräfte können sich beim Schneiden/Spreizen unkontrolliert entladen."},
+{m:"gefahren",q:"Welche Betriebsstoffe können bei einem Unfall gefährlich austreten?",o:["Nur Wasser","Kraftstoff, Batteriesäure, Kühlmittel","Nur Luft","Keine, das ist ungefährlich"],c:1,e:"Auslaufende Betriebsstoffe bergen Rutsch- und Brandgefahr."},
+{m:"nachbereitung",q:"Was gehört zur Nachbereitung nach einem THL-Einsatz?",o:["Nur das Wegfahren des Fahrzeugs","Reinigung und Prüfung des hydraulischen Rettungsgeräts, Material ergänzen","Nichts, das übernimmt der Rettungsdienst","Nur die mündliche Übergabe"],c:1,e:"Gerätepflege und Materialergänzung stellen die Einsatzbereitschaft wieder her."},
+{m:"nachbereitung",q:"Wo wird der Einsatzverlauf dokumentiert?",o:["Im Einsatzbericht","Nirgends","Nur im Gedächtnis der Kräfte","Im Fahrtenbuch des Fahrzeugs"],c:0,e:"Der Einsatzbericht dokumentiert Verlauf und eingesetzte Technik."},
+{m:"grundlagen",q:"Welche Priorität steht bei THL-Einsätzen an erster Stelle?",o:["Sachwerterhalt","Eigenschutz","Schnelligkeit","Öffentlichkeitsarbeit"],c:1,e:"Eigenschutz hat immer oberste Priorität, auch bei THL-Einsätzen."},
+{m:"verkehrsunfall",q:"Was ist bei der Rettungsöffnung besonders zu beachten?",o:["Nur die Geschwindigkeit der Rettung","Mögliche Verletzungen, insbesondere der Wirbelsäule","Die Farbe des Fahrzeugs","Die Tageszeit"],c:1,e:"Eine schonende Rettung unter Berücksichtigung möglicher Wirbelsäulenverletzungen ist zentral."},
+{m:"fahrzeugtechnik",q:"Was ist bei Gurtstraffern zu beachten, wenn sie nicht ausgelöst haben?",o:["Sie sind völlig ungefährlich","Sie bergen ebenfalls ein Verletzungsrisiko wie Airbags","Sie müssen sofort entfernt werden","Sie betreffen nur die Rücksitze"],c:1,e:"Nicht ausgelöste Gurtstraffer sind ähnlich wie Airbags mit Vorsicht zu behandeln."},
+{m:"geraetekunde",q:"Welchen Vorteil bieten akkubetriebene hydraulische Rettungsgeräte?",o:["Sie sind schwerer","Schneller, kabelunabhängiger Einsatz","Sie benötigen kein Hydrauliköl","Sie sind lauter"],c:1,e:"Akkubetriebene Geräte ermöglichen einen schnellen, kabelunabhängigen Einsatz."},
+{m:"hoehe_tiefe",q:"Was steht bei Rettung aus Höhen und Tiefen im Vordergrund?",o:["Nur Geschwindigkeit","Absturzsicherung der eigenen Kräfte und schonende Rettung","Nur die Dokumentation","Keine besonderen Maßnahmen"],c:1,e:"Eigensicherung und schonende Rettung sind zentrale Prinzipien."},
+{m:"hoehe_tiefe",q:"Wann werden spezialisierte Höhenrettungskräfte hinzugezogen?",o:["Nie erforderlich","Bei komplexeren Höhen-/Tiefenrettungslagen","Nur bei schönem Wetter","Nur bei Verkehrsunfällen"],c:1,e:"Komplexe Lagen erfordern oft spezialisierte Kräfte."},
+{m:"bergung",q:"Was erfolgt nach Abschluss der Personenrettung bei einem Fahrzeugunfall?",o:["Nichts weiter notwendig","Die technische Bergung des Fahrzeugs","Nur die Reinigung der Straße","Der sofortige Rückzug aller Kräfte"],c:1,e:"Nach der Personenrettung folgt die technische Bergung."},
+{m:"bergung",q:"Worauf ist bei LKW-Unfällen mit Ladung besonders zu achten?",o:["Auf nichts Besonderes","Auf sichere Ladungssicherung vor Bewegung des Fahrzeugs","Nur auf die Fahrzeugfarbe","Auf die Motorleistung"],c:1,e:"Verrutschende Ladung stellt eine erhebliche zusätzliche Gefahr dar."},
+{m:"gefahrstoffaustritt",q:"Worauf sollte bei Unfällen mit Gefahrgutfahrzeugen frühzeitig geachtet werden?",o:["Auf die Fahrzeugfarbe","Auf Kennzeichnung durch Warntafeln und Gefahrzettel","Auf das Baujahr des Fahrzeugs","Auf nichts Besonderes"],c:1,e:"Kennzeichnungen liefern erste wichtige Hinweise auf Gefahrstoffe."},
+{m:"gefahrstoffaustritt",q:"Was sollte bei Verdacht auf gefährlichen Stoffaustritt zuerst erfolgen?",o:["Sofortiges Anfahren aus jeder Richtung","Sicherheitsabstand einhalten und aus Luv nähern","Die Rettung ohne Rücksicht auf Gefahrstoffe fortsetzen","Nichts, das ist unwichtig"],c:1,e:"Sicherheitsabstand und Anfahrt aus Luv minimieren die Gefährdung."},
+{m:"sonderfahrzeuge_thl",q:"Was führt ein Rüstwagen typischerweise mit?",o:["Nur Wasser","Hydraulisches Rettungsgerät, Hebekissen, Absteifmaterial","Nur Erste-Hilfe-Material","Nur Funkgeräte"],c:1,e:"Der Rüstwagen führt umfangreiches technisches Rettungsgerät mit."},
+{m:"sonderfahrzeuge_thl",q:"Wer wird bei schweren Bergungen häufig zusätzlich hinzugezogen?",o:["Die Feuerwehrjugend","Kranfahrzeuge/spezialisierte Abschleppunternehmen","Der Rettungsdienst allein","Niemand, die Feuerwehr macht alles selbst"],c:1,e:"Schwere Bergungen erfordern oft spezialisierte externe Unterstützung."},
+{m:"einsatzabschluss",q:"An wen wird die Einsatzstelle nach Abschluss der Feuerwehrmaßnahmen meist übergeben?",o:["An die Presse","An Polizei bzw. Straßenbaulastträger","An den Rettungsdienst dauerhaft","An niemanden, sie bleibt offen"],c:1,e:"Übergabe erfolgt i. d. R. an Polizei oder Straßenbaulastträger."},
+{m:"einsatzabschluss",q:"Was gehört zu den letzten Feuerwehraufgaben vor Verlassen der Einsatzstelle?",o:["Nichts weiter notwendig","Bindung auslaufender Betriebsstoffe und Kontrolle auf Gefahren","Nur das Verstauen der Ausrüstung","Die Übergabe an die Presse"],c:1,e:"Betriebsstoffbindung und Gefahrenkontrolle gehören zu den letzten Aufgaben."},
+{m:"grundlagen",q:"Was ist ein Grundsatz bei jeder technischen Maßnahme?",o:["Sofortiges Handeln ohne Überlegung","Beurteilung der Gefahren vor der eigentlichen Rettung","Nur die Geschwindigkeit zählt","Keine Abstimmung mit anderen Kräften nötig"],c:1,e:"Gefahrenbeurteilung steht vor jeder technischen Maßnahme."},
+{m:"verkehrsunfall",q:"Wer betreut die eingeklemmte Person während der technischen Rettung?",o:["Niemand","Geschultes Personal, meist des Rettungsdienstes","Nur der Maschinist","Die Polizei"],c:1,e:"Kontinuierliche Betreuung erfolgt durch geschultes medizinisches Personal."},
+{m:"geraetekunde",q:"Was macht ein Kombigerät bei der technischen Rettung?",o:["Nur Spreizen","Vereint Spreiz- und Schneidfunktion in einem Werkzeug","Nur Wasser fördern","Nur Beleuchtung bereitstellen"],c:1,e:"Kombigeräte vereinen Spreiz- und Schneidfunktion."},
+{m:"fahrzeugtechnik",q:"Was ist bei Elektrofahrzeugen zusätzlich zu beachten?",o:["Nichts Besonderes im Vergleich zu Verbrennern","Abstand zu Hochvoltkomponenten und Herstellervorgaben beachten","Nur die Reifenluft prüfen","Nur der Ölstand ist relevant"],c:1,e:"Hochvoltkomponenten erfordern besondere Vorsicht bei Elektrofahrzeugen."},
+{m:"rettungstechniken",q:"Was ist der Schwellerschnitt/Sitzverstellung?",o:["Ein Verfahren zur Wasserförderung","Eine Technik zur Vergrößerung des Raums im Fußbereich","Eine Belüftungsmethode","Ein Dokumentationsverfahren"],c:1,e:"Diese Technik schafft mehr Raum im Fußbereich für die schonende Rettung."},
+{m:"absicherung",q:"Was gehört zur vorsorglichen Absicherung während der technischen Rettung?",o:["Bereitstellung von Brandschutz (z. B. Pulverlöscher)","Nur die Straßenreinigung","Nur die Pressearbeit","Keine besonderen Maßnahmen"],c:0,e:"Vorsorglicher Brandschutz gehört zur Standardabsicherung."},
+{m:"rettungsdienst",q:"Wie sollte die Kommunikation zwischen Feuerwehr und Rettungsdienst gestaltet sein?",o:["Nicht notwendig","Klar und während des gesamten Einsatzes abgestimmt","Nur am Ende des Einsatzes","Nur schriftlich nach dem Einsatz"],c:1,e:"Durchgehende klare Kommunikation ist für die Parallelrettung essenziell."},
+{m:"sonstige_lagen",q:"Was gehört zu den Grundzügen der Tierrettung?",o:["Sichere und tierschonende Rettung","Ignorieren des Eigenschutzes","Keine Vorbereitung notwendig","Ausschließlich Aufgabe des Tierarztes"],c:0,e:"Sicherheit und Tierschonung stehen bei der Tierrettung im Vordergrund."},
+{m:"nachbereitung",q:"Was passiert mit verbrauchtem Material wie Unterbaukeilen nach dem Einsatz?",o:["Es wird nicht beachtet","Es wird ergänzt/nachbeschafft","Es wird entsorgt ohne Ersatz","Es bleibt an der Einsatzstelle"],c:1,e:"Verbrauchtes Material wird für den nächsten Einsatz ergänzt."},
+{m:"gefahren",q:"Welche Gefahr geht von auslaufenden Betriebsstoffen aus?",o:["Keine Gefahr","Rutsch- und Brandgefahr","Nur optische Beeinträchtigung","Nur Umweltbelastung ohne Personengefahr"],c:1,e:"Auslaufende Betriebsstoffe bergen Rutsch- und Brandgefahr für die Kräfte."},
+{m:"gefahren",q:"Was sind Rückstellkräfte bei einem verunfallten Fahrzeug?",o:["Elektrische Ladung im Motor","Gespannte, verformte Bauteile, die sich plötzlich lösen können","Die Bremskraft des Fahrzeugs","Kräfte des Rettungsdienstes"],c:1,e:"Rückstellkräfte können sich beim technischen Eingriff unkontrolliert entladen."},
+{m:"fahrzeugtechnik",q:"Wozu dient die Rettungskarte konkret bei der Schnittplanung?",o:["Sie zeigt empfohlene Schnittstellen und zu meidende Bereiche","Sie zeigt nur die Farbe des Fahrzeugs","Sie ersetzt den Fahrzeugschein","Sie ist nur für die Werkstatt relevant"],c:0,e:"Die Rettungskarte liefert konkrete Hinweise für die sichere Schnittplanung."},
+{m:"absicherung",q:"Welche Maßnahme gehört zur Fahrzeugsicherung bei einem Unfall?",o:["Handbremse lösen","Handbremse setzen, Zündung ausschalten, Unterbaukeile einsetzen","Nur die Scheinwerfer einschalten","Nur die Türen öffnen"],c:1,e:"Diese Maßnahmen sichern das Fahrzeug gegen unkontrollierte Bewegung."},
+{m:"geraetekunde",q:"Welches physikalische Prinzip nutzen hydraulische Rettungsgeräte zur Kraftübersetzung?",o:["Das Ohmsche Gesetz","Das Prinzip von Pascal (Druckausbreitung in Flüssigkeiten)","Das Hookesche Federgesetz","Die Bernoulli-Gleichung"],c:1,e:"Pascal beschreibt, wie sich Druck in einer Flüssigkeit gleichmäßig ausbreitet und übersetzt werden kann."},
+{m:"geraetekunde",q:"In welcher Größenordnung liegt der typische Betriebsdruck hydraulischer Rettungsgeräte?",o:["6-7 bar","60-70 bar","630-720 bar","6000-7000 bar"],c:2,e:"Moderne Rettungsgeräte arbeiten typisch mit 630-720 bar Betriebsdruck."},
+{m:"fahrzeugtechnik",q:"Wie verhält sich die kinetische Energie bei einem Aufprall zur Geschwindigkeit?",o:["Linear proportional","Quadratisch proportional (E=½mv²)","Umgekehrt proportional","Es gibt keinen Zusammenhang"],c:1,e:"Kinetische Energie steigt quadratisch mit der Geschwindigkeit."},
+{m:"fahrzeugtechnik",q:"Wie wirken Airbags und Gurtstraffer physikalisch auf den Körper?",o:["Sie erhöhen die Aufprallkraft","Sie verlängern die Abbremszeit und reduzieren so die Spitzenkraft","Sie haben keinen physikalischen Effekt","Sie beschleunigen den Körper zusätzlich"],c:1,e:"Längere Abbremszeit reduziert nach dem Impulserhaltungssatz die Spitzenkraft."},
+{m:"fahrzeugtechnik",q:"In welchem Spannungsbereich arbeiten Hochvoltsysteme in Hybrid-/Elektrofahrzeugen typisch?",o:["1-5 V","12-24 V","100-800 V","10.000-20.000 V"],c:2,e:"Hochvoltsysteme arbeiten typisch im Bereich von 100 bis 800 V Gleichspannung."}
+];
+
+const STORAGE_KEY = "thl_lernapp_v1";
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"done":{}}');
+let currentModuleId = null;
+let quizQueue = [], quizIndex = 0, quizScore = 0, quizAnswered = false, quizFilterModule = "all";
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function updateHero(){
+  const total = MODULES.length;
+  const doneCount = MODULES.filter(m => state.done[m.id]).length;
+  const pct = Math.round((doneCount/total)*100);
+  const circumference = 213.6;
+  const offset = circumference - (circumference * pct/100);
+  document.getElementById("gaugeFill").style.strokeDashoffset = offset;
+  document.getElementById("gaugePct").textContent = pct + "%";
+  document.getElementById("heroSub").textContent = `Ausbildungsstand · ${doneCount} von ${total} Modulen abgeschlossen`;
+}
+function renderModGrid(){
+  const grid = document.getElementById("modGrid");
+  grid.innerHTML = MODULES.map(m => `
+    <div class="mod-card" onclick="openModule('${m.id}')">
+      <div class="mod-num">${m.num}</div>
+      <div class="mod-info"><div class="mtitle">${m.title}</div><div class="msub">${m.sub}</div></div>
+      <div class="mod-check ${state.done[m.id] ? 'done' : ''}"></div>
+    </div>`).join("");
+}
+function openModule(id){
+  const m = MODULES.find(x => x.id === id);
+  currentModuleId = id;
+  document.getElementById("detailNum").textContent = "Modul " + m.num;
+  document.getElementById("detailTitle").textContent = m.title;
+  document.getElementById("detailSub").textContent = m.sub;
+  document.getElementById("detailBody").innerHTML = m.body;
+  const btn = document.getElementById("markDoneBtn");
+  btn.textContent = state.done[id] ? "✓ Durchgearbeitet" : "Als durchgearbeitet markieren";
+  btn.className = "mark-done-btn" + (state.done[id] ? " is-done" : "");
+  showView("detail");
+}
+document.getElementById("markDoneBtn").addEventListener("click", () => {
+  if(!currentModuleId) return;
+  state.done[currentModuleId] = !state.done[currentModuleId];
+  saveState(); openModule(currentModuleId); updateHero(); renderModGrid();
+});
+function showView(name){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + name).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+  document.querySelectorAll(".bn-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+}
+document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.view)));
+function renderQuizFilter(){
+  const wrap = document.getElementById("quizFilter");
+  const chips = [{id:"all", label:"Alle Module"}].concat(MODULES.map(m => ({id:m.id, label:m.title})));
+  wrap.innerHTML = chips.map(c => `<button class="qf-chip ${quizFilterModule===c.id?'active':''}" data-id="${c.id}">${c.label}</button>`).join("");
+  wrap.querySelectorAll(".qf-chip").forEach(chip => chip.addEventListener("click", () => { quizFilterModule = chip.dataset.id; renderQuizFilter(); }));
+}
+function startQuiz(){
+  let pool = quizFilterModule === "all" ? QUIZ.slice() : QUIZ.filter(q => q.m === quizFilterModule);
+  pool = pool.sort(() => Math.random() - 0.5);
+  quizQueue = pool; quizIndex = 0; quizScore = 0;
+  document.getElementById("quizIntro").style.display = "none";
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizRunning").style.display = "block";
+  renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  quizAnswered = false;
+  const q = quizQueue[quizIndex];
+  const modTitle = MODULES.find(m => m.id === q.m).title;
+  const box = document.getElementById("quizRunning");
+  box.innerHTML = `
+    <div class="quiz-progress"><span>Frage ${quizIndex+1} / ${quizQueue.length}</span><span>${modTitle}</span></div>
+    <div class="q-card">
+      <div class="q-text">${q.q}</div>
+      <div id="qOpts">${q.o.map((opt,i) => `<button class="q-opt" data-i="${i}">${opt}</button>`).join("")}</div>
+      <div id="qExplainWrap"></div>
+    </div>`;
+  box.querySelectorAll(".q-opt").forEach(btn => btn.addEventListener("click", () => selectAnswer(parseInt(btn.dataset.i))));
+}
+function selectAnswer(i){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQueue[quizIndex];
+  const opts = document.querySelectorAll(".q-opt");
+  opts.forEach((btn, idx) => {
+    if(idx === q.c) btn.classList.add("correct");
+    else if(idx === i) btn.classList.add("wrong");
+    btn.style.pointerEvents = "none";
+  });
+  if(i === q.c) quizScore++;
+  document.getElementById("qExplainWrap").innerHTML = `
+    <div class="q-explain">${q.e}</div>
+    <button class="q-next-btn" onclick="nextQuizQuestion()">${quizIndex < quizQueue.length-1 ? 'Nächste Frage' : 'Ergebnis anzeigen'}</button>`;
+}
+function nextQuizQuestion(){
+  quizIndex++;
+  if(quizIndex >= quizQueue.length){ showQuizResult(); } else { renderQuizQuestion(); }
+}
+function showQuizResult(){
+  document.getElementById("quizRunning").style.display = "none";
+  const doneBox = document.getElementById("quizDone");
+  doneBox.style.display = "block";
+  const pct = Math.round((quizScore/quizQueue.length)*100);
+  doneBox.innerHTML = `
+    <div class="quiz-result"><div class="score">${quizScore}/${quizQueue.length}</div><div class="score-label">${pct}% richtig beantwortet</div></div>
+    <button class="quiz-start-btn" onclick="resetQuizView()">Neue Prüfung</button>`;
+}
+function resetQuizView(){
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizIntro").style.display = "block";
+}
+renderModGrid(); renderQuizFilter(); updateHero();
+</script>
+</body>
+</html>

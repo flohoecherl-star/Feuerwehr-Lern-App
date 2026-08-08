@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Maschinist · Lernapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C0E; --bg-elevated:#14181B; --bg-card:#181C1F;
+  --line:#262B2F; --line-soft:#1D2124;
+  --text:#E8E6E1; --text-dim:#8A9199; --text-faint:#565D63;
+  --green:#5FA872; --green-dim:#2C4E36;
+  --amber:#E8A33D; --teal:#3FA79A; --teal-dim:#245852; --red:#C1361B;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+body{padding-bottom:70px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);}
+h1,h2,h3{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em;}
+header.hero{padding:22px 18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101316,var(--bg));}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.hero-title h1{font-size:26px;color:var(--text);}
+.hero-title .eyebrow{margin-bottom:4px;}
+.gauge-wrap{position:relative;width:74px;height:74px;flex-shrink:0;}
+.gauge-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:var(--line);stroke-width:7;}
+.gauge-fill{fill:none;stroke:var(--green);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .6s ease;}
+.gauge-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--green);}
+.hero-sub{margin-top:10px;font-size:12.5px;color:var(--text-dim);}
+nav.tabs{display:flex;overflow-x:auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg-elevated);position:sticky;top:0;z-index:20;scrollbar-width:none;}
+nav.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.03em;padding:8px 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);white-space:nowrap;cursor:pointer;}
+.tab-btn.active{background:var(--green);color:#0A1D10;border-color:var(--green);font-weight:600;}
+main{padding:16px 14px 30px;max-width:640px;margin:0 auto;}
+.view{display:none;}
+.view.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.mod-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.mod-card{display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;cursor:pointer;}
+.mod-card:active{border-color:var(--green-dim);}
+.mod-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);width:22px;flex-shrink:0;}
+.mod-info{flex:1;min-width:0;}
+.mod-info .mtitle{font-family:'Oswald',sans-serif;font-size:15px;font-weight:500;color:var(--text);}
+.mod-info .msub{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.mod-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.mod-check.done{background:var(--teal);border-color:var(--teal);}
+.mod-check.done::after{content:'✓';font-size:11px;color:#04211D;font-weight:700;}
+.mod-header{margin-bottom:14px;}
+.back-btn{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0 0 10px;display:flex;align-items:center;gap:4px;}
+.mod-header h2{font-size:22px;margin-bottom:4px;}
+.mod-header .msub{font-size:12.5px;color:var(--text-dim);}
+.block{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;margin-bottom:10px;}
+.block h3{font-size:14px;color:var(--green);margin-bottom:8px;letter-spacing:.02em;}
+.block h3.teal{color:var(--teal);}
+.block h3.red{color:var(--red);}
+.block h3.amber{color:var(--amber);}
+.block p{font-size:13.5px;line-height:1.55;color:var(--text);margin-bottom:6px;}
+.block ul{padding-left:18px;margin:4px 0;}
+.block li{font-size:13.5px;line-height:1.6;color:var(--text);margin-bottom:4px;}
+.block li b{color:var(--text);font-weight:600;}
+.block .note{font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic;}
+.warn-box{border-left:3px solid var(--red);background:rgba(193,54,27,.08);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:8px;}
+.warn-box p{font-size:12.5px;color:#E8B9AC;margin:0;}
+.warn-box .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:4px;}
+.figure{background:#0E1114;border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0;text-align:center;}
+.figure svg{max-width:100%;height:auto;}
+.figure-caption{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);margin-top:8px;letter-spacing:.02em;}
+.calc-box{background:#0E1114;border:1px solid var(--green-dim);border-radius:8px;padding:12px 14px;margin:10px 0;}
+.calc-box .calc-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);display:block;margin-bottom:6px;}
+.calc-box .calc-formula{font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--text);line-height:1.7;}
+.calc-box .calc-result{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--green);font-weight:600;margin-top:6px;}
+.mark-done-btn{width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--teal-dim);background:transparent;color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:.04em;cursor:pointer;margin-top:6px;}
+.mark-done-btn.is-done{background:var(--teal);color:#04211D;border-color:var(--teal);}
+.formula{font-family:'IBM Plex Mono',monospace;background:#0E1114;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;color:var(--green);text-align:center;letter-spacing:.02em;}
+.table-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:13px;}
+.table-row:last-child{border-bottom:none;}
+.table-row .k{color:var(--text-dim);}
+.table-row .v{font-family:'IBM Plex Mono',monospace;color:var(--text);font-weight:500;}
+.quiz-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.qf-chip{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:6px 10px;border-radius:14px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);cursor:pointer;}
+.qf-chip.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal-dim);}
+.quiz-start-btn{width:100%;padding:15px;background:var(--green);color:#0A1D10;border:none;border-radius:var(--radius);font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+.quiz-progress{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:8px;display:flex;justify-content:space-between;}
+.q-card{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+.q-text{font-size:15px;line-height:1.5;margin-bottom:14px;color:var(--text);font-family:'Oswald',sans-serif;font-weight:400;}
+.q-opt{display:block;width:100%;text-align:left;padding:12px 13px;margin-bottom:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg-elevated);color:var(--text);font-size:13.5px;cursor:pointer;}
+.q-opt.correct{border-color:var(--teal);background:rgba(63,167,154,.12);color:var(--teal);}
+.q-opt.wrong{border-color:var(--red);background:rgba(193,54,27,.12);color:#E8998A;}
+.q-explain{font-size:12.5px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);line-height:1.5;}
+.q-next-btn{width:100%;padding:13px;margin-top:14px;background:var(--teal);color:#04211D;border:none;border-radius:8px;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+.quiz-result{text-align:center;padding:30px 16px;}
+.quiz-result .score{font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--green);font-weight:600;}
+.quiz-result .score-label{font-size:12px;color:var(--text-dim);margin-top:4px;}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg-elevated);border-top:1px solid var(--line);z-index:30;}
+.bn-btn{flex:1;padding:10px 4px 12px;text-align:center;background:none;border:none;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.02em;cursor:pointer;}
+.bn-btn.active{color:var(--green);}
+.bn-icon{display:block;font-size:18px;margin-bottom:3px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-top">
+    <div class="hero-title">
+      <div class="eyebrow">Fahrzeuge & Pumpen · Lehrmeinung Bayern / AGBF</div>
+      <h1>Maschinist</h1>
+    </div>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 80 80">
+        <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>
+        <circle id="gaugeFill" class="gauge-fill" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+      </svg>
+      <div class="gauge-pct" id="gaugePct">0%</div>
+    </div>
+  </div>
+  <div class="hero-sub" id="heroSub">Ausbildungsstand · 0 von 10 Modulen abgeschlossen</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="uebersicht">Module</button>
+  <button class="tab-btn" data-view="spickzettel">Spickzettel</button>
+  <button class="tab-btn" data-view="quiz">Prüfung</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-uebersicht">
+    <div class="mod-grid" id="modGrid"></div>
+  </section>
+
+  <section class="view" id="view-detail">
+    <button class="back-btn" onclick="showView('uebersicht')">← Alle Module</button>
+    <div class="mod-header">
+      <div class="eyebrow" id="detailNum"></div>
+      <h2 id="detailTitle"></h2>
+      <div class="msub" id="detailSub"></div>
+    </div>
+    <div id="detailBody"></div>
+    <button class="mark-done-btn" id="markDoneBtn">Als durchgearbeitet markieren</button>
+  </section>
+
+  <section class="view" id="view-spickzettel">
+    <div class="block">
+      <h3>Normeinheit Feuerlöschkreiselpumpe</h3>
+      <div class="table-row"><span class="k">FPN 10-1000</span><span class="v">1000 l/min bei 10 bar</span></div>
+      <div class="table-row"><span class="k">FPN 10-2000</span><span class="v">2000 l/min bei 10 bar</span></div>
+      <div class="table-row"><span class="k">FPN 10-3000</span><span class="v">3000 l/min bei 10 bar</span></div>
+      <div class="note">Angabe gilt bei 0,5 bar Zulaufdruck aus offener Entnahmestelle (Normprüfpunkt).</div>
+    </div>
+    <div class="block">
+      <h3 class="teal">Saughöhe & Kavitation</h3>
+      <div class="formula">Max. geodätische Saughöhe ≈ 7,5 m (theoretisch, praktisch weniger)</div>
+      <p style="margin-top:8px;">Wird der zulässige Unterdruck überschritten, kann Kavitation auftreten (Dampfblasenbildung) – erkennbar an ungleichmäßigem Pumpengeräusch, Förderstromeinbruch und Gefahr von Pumpenschäden.</p>
+    </div>
+    <div class="block">
+      <h3 class="amber">Normschlauchlängen</h3>
+      <div class="table-row"><span class="k">A-Schlauch (110 mm)</span><span class="v">5 m</span></div>
+      <div class="table-row"><span class="k">B-Schlauch (75 mm)</span><span class="v">20 m (Rollschlauch)</span></div>
+      <div class="table-row"><span class="k">C-Schlauch (42/52 mm)</span><span class="v">15 m</span></div>
+      <div class="table-row"><span class="k">D-Schlauch (25 mm)</span><span class="v">5 m</span></div>
+    </div>
+    <div class="block">
+      <h3>Fahrzeugkürzel (Auswahl)</h3>
+      <div class="table-row"><span class="k">LF 10 / LF 20</span><span class="v">Löschgruppenfahrzeug</span></div>
+      <div class="table-row"><span class="k">HLF</span><span class="v">Hilfeleistungslöschgruppenfahrzeug</span></div>
+      <div class="table-row"><span class="k">TLF 3000/4000</span><span class="v">Tanklöschfahrzeug</span></div>
+      <div class="table-row"><span class="k">DLK 23/12</span><span class="v">Drehleiter mit Korb</span></div>
+      <div class="table-row"><span class="k">RW</span><span class="v">Rüstwagen</span></div>
+      <div class="table-row"><span class="k">ELW</span><span class="v">Einsatzleitwagen</span></div>
+    </div>
+    <div class="block">
+      <h3 class="red">Sonderrechte im Straßenverkehr</h3>
+      <p>Blaulicht und Einsatzhorn (§38 StVO) gewähren freie Bahn, entbinden aber nicht von der Sorgfaltspflicht. Wegerecht nach §35 StVO gilt nur bei „dringlicher Fahrt" – Verantwortung des Maschinisten für sicheres Fahrverhalten bleibt bestehen.</p>
+    </div>
+  </section>
+
+  <section class="view" id="view-quiz">
+    <div id="quizIntro">
+      <div class="block">
+        <h3>Prüfungsmodus</h3>
+        <p>Fragen zu allen Modulen der Maschinistenausbildung. Auswahl nach Themenbereich möglich.</p>
+      </div>
+      <div class="quiz-filter" id="quizFilter"></div>
+      <button class="quiz-start-btn" onclick="startQuiz()">Prüfung starten</button>
+    </div>
+    <div id="quizRunning" style="display:none;"></div>
+    <div id="quizDone" style="display:none;"></div>
+  </section>
+</main>
+
+<nav class="bottomnav">
+  <button class="bn-btn active" data-view="uebersicht" onclick="showView('uebersicht')"><span class="bn-icon">▤</span>Module</button>
+  <button class="bn-btn" data-view="spickzettel" onclick="showView('spickzettel')"><span class="bn-icon">◈</span>Spickzettel</button>
+  <button class="bn-btn" data-view="quiz" onclick="showView('quiz')"><span class="bn-icon">◉</span>Prüfung</button>
+</nav>
+
+<script>
+const MODULES = [
+{
+  id:"aufgaben", num:"01", title:"Aufgaben des Maschinisten",
+  sub:"Verantwortung · Rolle in der Gruppe",
+  body:`
+  <div class="block">
+    <h3>Kernaufgaben</h3>
+    <ul>
+      <li>Sicheres Führen des Feuerwehrfahrzeugs zur Einsatzstelle</li>
+      <li>Bedienung von Fahrzeugtechnik, Pumpe und Zusatzaggregaten</li>
+      <li>Sicherstellen der Wasserversorgung während des gesamten Einsatzes</li>
+      <li>Ggf. Übernahme der Atemschutzüberwachung, wenn keine gesonderte Kraft dafür eingeteilt ist</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Verantwortung</h3>
+    <p>Der Maschinist trägt die Verantwortung für den technisch einwandfreien Zustand des Fahrzeugs, für die sichere Fahrweise sowie für eine unterbrechungsfreie Wasserversorgung des Angriffstrupps – eine zentrale, oft unterschätzte Funktion im Einsatzgeschehen.</p>
+  </div>`
+},
+{
+  id:"fahrzeugkunde", num:"02", title:"Fahrzeugkunde",
+  sub:"Löschfahrzeuge · Beladung",
+  body:`
+  <div class="block">
+    <h3>Fahrzeugtypen (Auswahl)</h3>
+    <ul>
+      <li><b>LF 10 / LF 20:</b> Löschgruppenfahrzeuge, Grundausstattung Brandbekämpfung</li>
+      <li><b>HLF:</b> Hilfeleistungslöschgruppenfahrzeug, zusätzlich Ausrüstung für technische Hilfeleistung</li>
+      <li><b>TLF 3000/4000:</b> Tanklöschfahrzeuge mit großem Wassertank für schnellen Erstangriff</li>
+      <li><b>DLK 23/12:</b> Drehleiter mit Korb für Rettung aus Höhen</li>
+      <li><b>RW:</b> Rüstwagen mit umfangreichem technischem Gerät</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Normbeladung</h3>
+    <p>Löschfahrzeuge sind nach Norm mit standardisierter Beladung ausgestattet – feste Fächerzuordnung erleichtert den schnellen Zugriff im Einsatz und die Kontrolle nach Rückkehr.</p>
+  </div>`
+},
+{
+  id:"pumpenkunde", num:"03", title:"Pumpenkunde",
+  sub:"Feuerlöschkreiselpumpe · Kennlinie",
+  body:`
+  <div class="block">
+    <h3>Feuerlöschkreiselpumpe (FP)</h3>
+    <p>Zentrifugalpumpe (Kreiselpumpe), die Wasser über ein rotierendes Laufrad beschleunigt und die kinetische Energie anschließend im Spiralgehäuse in Druckenergie umwandelt. Genormt nach Förderstrom/Förderdruck, z. B. FPN 10-1000 (1000 l/min bei 10 bar Ausgangsdruck).</p>
+  </div>
+  <div class="figure">
+    <svg viewBox="0 0 300 190" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="150" x2="270" y2="150" stroke="#262B2F" stroke-width="1"/>
+      <line x1="30" y1="150" x2="30" y2="20" stroke="#262B2F" stroke-width="1"/>
+      <text x="150" y="175" fill="#565D63" font-size="9" text-anchor="middle" font-family="IBM Plex Mono">Förderstrom Q (l/min)</text>
+      <text x="14" y="90" fill="#565D63" font-size="9" text-anchor="middle" font-family="IBM Plex Mono" transform="rotate(-90 14 90)">Druck p (bar)</text>
+      <path d="M 35 35 Q 150 45 265 130" stroke="#5FA872" stroke-width="2.5" fill="none"/>
+      <circle cx="150" cy="60" r="3" fill="#E8A33D"/>
+      <line x1="150" y1="60" x2="150" y2="150" stroke="#E8A33D" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="30" y1="60" x2="150" y2="60" stroke="#E8A33D" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="150" y="165" fill="#E8A33D" font-size="8" text-anchor="middle" font-family="IBM Plex Mono">Q₁</text>
+      <text x="20" y="63" fill="#E8A33D" font-size="8" text-anchor="middle" font-family="IBM Plex Mono">p₁</text>
+      <circle cx="230" cy="105" r="3" fill="#3FA79A"/>
+      <line x1="230" y1="105" x2="230" y2="150" stroke="#3FA79A" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="30" y1="105" x2="230" y2="105" stroke="#3FA79A" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="230" y="165" fill="#3FA79A" font-size="8" text-anchor="middle" font-family="IBM Plex Mono">Q₂</text>
+      <text x="20" y="108" fill="#3FA79A" font-size="8" text-anchor="middle" font-family="IBM Plex Mono">p₂</text>
+    </svg>
+    <div class="figure-caption">Typische Pumpenkennlinie: mit steigendem Förderstrom Q sinkt der erreichbare Druck p</div>
+  </div>
+  <div class="block">
+    <h3 class="teal">Kennlinie & Ähnlichkeitsgesetze</h3>
+    <p>Die Pumpenkennlinie beschreibt den Zusammenhang zwischen Förderstrom und Förderdruck: Mit steigender Wasserabgabe (mehr Rohre/größere Öffnung) sinkt der erreichbare Druck – der Maschinist muss dies bei der Steuerung berücksichtigen. Physikalisch folgt dies aus den Affinitätsgesetzen für Kreiselpumpen bei konstanter Drehzahl: Der Förderdruck steigt nicht proportional, sondern degressiv mit sinkendem Förderstrom, da die Strömungsverluste im Pumpengehäuse quadratisch mit der Geschwindigkeit zunehmen.</p>
+  </div>
+  <div class="calc-box">
+    <span class="calc-label">Affinitätsgesetze bei Drehzahländerung</span>
+    <div class="calc-formula">Q ~ n (Förderstrom proportional zur Drehzahl)</div>
+    <div class="calc-formula">p ~ n² (Druck proportional zum Quadrat der Drehzahl)</div>
+    <div class="calc-formula">P ~ n³ (Antriebsleistung proportional zur dritten Potenz der Drehzahl)</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:6px;">Praktische Konsequenz: Eine Verdopplung der Motordrehzahl vervierfacht den erreichbaren Druck, verachtfacht aber die benötigte Antriebsleistung – der Motor muss entsprechend überdimensioniert sein.</p>
+  </div>
+  <div class="block">
+    <h3 class="amber">NPSH-Wert & Kavitation – physikalischer Hintergrund</h3>
+    <p>NPSH steht für "Net Positive Suction Head" (Netto-Zulauf-Energiehöhe). Wird der Druck auf der Saugseite der Pumpe unter den <b>Dampfdruck des Wassers</b> bei der jeweiligen Temperatur abgesenkt, verdampft das Wasser lokal – es bilden sich Dampfblasen. Gelangen diese Blasen in Bereiche höheren Drucks im Pumpengehäuse, kollabieren sie schlagartig (Implosion). Die dabei freiwerdenden lokalen Druckstöße (bis in den Bereich mehrerer hundert bar) erodieren das Pumpenlaufrad und Gehäuse – ein rein physikalischer, nicht chemischer Verschleißmechanismus.</p>
+    <p>Erkennbar an ungleichmäßigem, "kiesartigem" Laufgeräusch und Förderstromeinbruch – sofort Saughöhe/Ansaugleitung prüfen, da Kavitation bei anhaltendem Betrieb irreparable Pumpenschäden verursacht.</p>
+  </div>
+  <div class="calc-box">
+    <span class="calc-label">Grenze der geodätischen Saughöhe</span>
+    <div class="calc-formula">h<sub>geo,max</sub> ≈ (p<sub>atm</sub> − p<sub>Dampf</sub>) / (ρ·g) − Verlusthöhe</div>
+    <div class="calc-result">Theoretisch ≈ 10,3 m bei Meereshöhe, praktisch ca. 7–7,5 m nutzbar</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:6px;">Der theoretische Grenzwert ergibt sich aus dem Atmosphärendruck (≈1013 hPa), der das Wasser überhaupt erst "hochdrückt" – die Pumpe erzeugt selbst keinen Zug, sondern lediglich einen Unterdruck, den der Außendruck ausgleicht. Verlusthöhen durch Rohrreibung, Saugkorb und Höhenlage reduzieren den praktisch nutzbaren Wert deutlich.</p>
+  </div>`
+},
+{
+  id:"wasserversorgung", num:"04", title:"Wasserversorgung",
+  sub:"Offene/geschlossene Entnahme",
+  body:`
+  <div class="block">
+    <h3>Entnahmearten</h3>
+    <ul>
+      <li><b>Offene Wasserentnahme:</b> aus Gewässern, Löschwasserteichen – Saugvorgang mit Ansaugschlauch und Saugkorb erforderlich</li>
+      <li><b>Geschlossene Wasserentnahme:</b> aus Hydranten (Über- oder Unterflur) – Zubringerleitung wird direkt an das Hydrantennetz angeschlossen</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Saugvorgang</h3>
+    <p>Vor dem Ansaugen muss die Leitung entlüftet werden – über Trockenlaufschutz bzw. Vorentlüftungseinrichtung der Pumpe, um Luft aus dem System zu entfernen und den Ansaugvorgang zu ermöglichen.</p>
+  </div>
+  <div class="block">
+    <h3>Löschwasserförderung über lange Wegstrecke</h3>
+    <p>Bei größerer Entfernung zur Wasserentnahmestelle wird die Wasserversorgung über mehrere Pumpen im Zusammenspiel sichergestellt (siehe Betriebsarten).</p>
+  </div>
+  <div class="calc-box">
+    <span class="calc-label">Rohrreibungswiderstand nach Darcy-Weisbach (vereinfacht)</span>
+    <div class="calc-formula">Δp = k × Q² × L</div>
+    <div class="calc-formula">mit k = schlauchspezifischer Widerstandsbeiwert, Q = Förderstrom, L = Länge</div>
+    <div class="calc-result">Beispiel B-Schlauch: Δp ≈ 0,08 bar je 100 l/min je 100 m → bei 800 l/min über 400 m: Δp ≈ 0,08 × 64 × 4 ≈ 20,5 bar</div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:6px;">Der quadratische Zusammenhang mit dem Förderstrom bedeutet: eine Verdopplung der abgegebenen Wassermenge vervierfacht den Druckverlust – bei hohem Wasserbedarf über lange Strecken sind daher parallel geführte Leitungen oder größere Schlauchdurchmesser (A statt B) oft effizienter als eine einzelne Hochdruckleitung.</p>
+  </div>`
+},
+{
+  id:"bedienung", num:"05", title:"Bedienung der Pumpe",
+  sub:"Anlassen · Druckregulierung",
+  body:`
+  <div class="block">
+    <h3>Grundablauf</h3>
+    <ul>
+      <li>Pumpe einkuppeln, Ansaugvorgang starten (bei offener Entnahme)</li>
+      <li>Druck kontrolliert aufbauen, auf Manometeranzeige achten</li>
+      <li>Abgabedruck an Strahlrohr/Anzahl der Abgänge anpassen</li>
+      <li>Ständige Kontrolle von Betriebsdruck, Kühlwassertemperatur und Kraftstoffstand</li>
+    </ul>
+  </div>
+  <div class="block warn-box" style="border:1px solid var(--line);background:var(--bg-card);">
+    <h3 style="color:var(--green);margin-bottom:6px;">Kommunikation mit dem Angriffstrupp</h3>
+    <p style="color:var(--text);">Druckänderungen am Strahlrohr müssen mit dem Angriffstrupp abgestimmt werden – plötzliche Druckstöße oder Druckabfall können den Trupp im Innenangriff gefährden.</p>
+  </div>`
+},
+{
+  id:"betriebsarten", num:"06", title:"Betriebsarten",
+  sub:"Sammel-, Tandem-, Reihenschaltung",
+  body:`
+  <div class="block">
+    <h3>Sammelbetrieb</h3>
+    <p>Mehrere Zubringerleitungen speisen eine Pumpe gemeinsam, um höheren Förderstrom bei begrenzter Zulaufmenge einer einzelnen Leitung zu erreichen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Reihenschaltung (Löschwasserförderung über lange Wegstrecke)</h3>
+    <p>Mehrere Pumpen werden hintereinander in die Förderstrecke geschaltet, um Druckverluste über lange Schlauchstrecken auszugleichen. Jede Pumpe „schiebt" das Wasser zur nächsten weiter.</p>
+  </div>
+  <div class="block">
+    <h3>Tandemschaltung</h3>
+    <p>Sonderform der Reihenschaltung, bei der Fahrzeuge in unmittelbarer Nähe zueinander gekoppelt eingesetzt werden, um höhere Förderleistungen auf kurzer Distanz zu erzielen.</p>
+  </div>`
+},
+{
+  id:"zumischung", num:"07", title:"Sonderlöschmittel & Zumischung",
+  sub:"Schaummittel · Zumischrate",
+  body:`
+  <div class="block">
+    <h3>Schaummittelzumischung</h3>
+    <p>Über einen Zumischer wird Schaummittel dem Löschwasser in definierter Konzentration beigemischt – typische Zumischraten liegen bei 1 %, 3 % oder 6 %, je nach Schaummittel und Brandklasse.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Zumischarten</h3>
+    <ul>
+      <li><b>Injektor-/Venturi-Zumischer:</b> nutzt den Wasserdruck zur Ansaugung des Schaummittels</li>
+      <li><b>Druckzumischanlage (fest verbaut):</b> exaktere Dosierung, meist bei größeren Fahrzeugen</li>
+    </ul>
+  </div>`
+},
+{
+  id:"wartung", num:"08", title:"Wartung & Pflege",
+  sub:"Prüfungen · Betriebsstoffe",
+  body:`
+  <div class="block">
+    <h3>Nach dem Einsatz</h3>
+    <ul>
+      <li>Fahrzeug und Pumpe reinigen, auf Beschädigungen prüfen</li>
+      <li>Betriebsstoffe (Kraftstoff, Kühlwasser, Öl) kontrollieren und auffüllen</li>
+      <li>Beladung auf Vollständigkeit prüfen, Einsatzbereitschaft wiederherstellen</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Wiederkehrende Prüfungen</h3>
+    <p>Fahrzeuge und Pumpen unterliegen regelmäßigen technischen Prüfungen (z. B. UVV-Prüfung, Pumpenprüfung) nach Herstellervorgabe und Dienstvorschrift – Dokumentation im Prüfbuch.</p>
+  </div>`
+},
+{
+  id:"sicherheit", num:"09", title:"Sicherheit beim Fahrbetrieb",
+  sub:"Sonderrechte · Ladungssicherung",
+  body:`
+  <div class="block">
+    <h3 class="red">Sonderrechte im Straßenverkehr</h3>
+    <p>Blaulicht und Einsatzhorn (§38 StVO) gewähren freie Bahn. Das Wegerecht nach §35 StVO gilt nur bei dringlicher Fahrt und entbindet nicht von der allgemeinen Sorgfaltspflicht.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Verhalten am Einsatzort</h3>
+    <ul>
+      <li>Fahrzeug sicher und platzsparend aufstellen, Rettungswege freihalten</li>
+      <li>Ladungssicherung der Beladung beachten</li>
+      <li>Verkehrsabsicherung ggf. eigenständig einleiten, bis weitere Kräfte übernehmen</li>
+    </ul>
+  </div>`
+},
+{
+  id:"zusammenwirken", num:"10", title:"Zusammenwirken mit der Gruppe",
+  sub:"Meldungen · Kommunikation",
+  body:`
+  <div class="block">
+    <h3>Rolle im Gruppengefüge</h3>
+    <p>Der Maschinist bleibt während des gesamten Innenangriffs am Fahrzeug einsatzbereit, überwacht Pumpendruck und Wasserversorgung und steht in ständigem Kontakt zum Gruppenführer.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Meldepflichten</h3>
+    <ul>
+      <li>Meldung bei Erreichen kritischer Wasserstände (z. B. Tankreserve)</li>
+      <li>Rückmeldung bei technischen Störungen an Fahrzeug oder Pumpe</li>
+      <li>Unterstützung der Atemschutzüberwachung, sofern keine gesonderte Kraft eingeteilt ist</li>
+    </ul>
+  </div>`
+},
+{
+  id:"sonderfahrzeuge", num:"11", title:"Sonderfahrzeuge",
+  sub:"Drehleiter · Rüstwagen · WLF",
+  body:`
+  <div class="block">
+    <h3>Drehleiter (DLK)</h3>
+    <p>Bedienung erfordert zusätzliche Qualifikation – Grundlagen umfassen Aufstellung auf tragfähigem Untergrund, Abstützung, Ausfahren des Leiterparks unter Beachtung von Hindernissen (Leitungen, Bäume) und Lastgrenzen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Rüstwagen (RW)</h3>
+    <p>Umfangreiche Beladung für technische Hilfeleistung – der Maschinist unterstützt beim Bereitstellen von hydraulischem Rettungsgerät, Beleuchtung und weiterem Sondergerät.</p>
+  </div>
+  <div class="block">
+    <h3>Wechselladerfahrzeug (WLF)</h3>
+    <p>Trägerfahrzeug für auswechselbare Abrollbehälter (z. B. Gefahrgut, Wasser, Schlauch) – Beladung wird je nach Einsatzlage flexibel angepasst.</p>
+  </div>`
+},
+{
+  id:"digitale_systeme", num:"12", title:"Digitale Systeme im Fahrzeug",
+  sub:"Navigation · Statusfunk · AVL",
+  body:`
+  <div class="block">
+    <h3>Navigationsunterstützung</h3>
+    <p>Digitale Einsatzleitrechner-Anbindung liefert Anfahrtsrouten und Objektinformationen direkt ins Fahrzeug – ersetzt jedoch nicht die Ortskenntnis und aufmerksame Fahrweise des Maschinisten.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Statusfunk & AVL</h3>
+    <p>Automatische Fahrzeugortung (AVL) und digitaler Statusfunk ermöglichen der Leitstelle eine Übersicht über Einsatzbereitschaft und Standort der Fahrzeuge – der Maschinist meldet Status manuell oder das System erkennt ihn automatisiert.</p>
+  </div>`
+},
+{
+  id:"foerderung_sonderfaelle", num:"13", title:"Löschwasserförderung Sonderfälle",
+  sub:"Höhenunterschiede · große Distanzen",
+  body:`
+  <div class="block">
+    <h3>Berg- und Talfahrt der Förderstrecke</h3>
+    <p>Bei Höhenunterschieden zwischen Wasserentnahme und Einsatzstelle beeinflusst die geodätische Höhe den nötigen Pumpendruck – bei Bergfahrt (Förderung nach oben) ist mit höherem Druckbedarf zu rechnen als bei ebener Strecke.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Lange Förderstrecken</h3>
+    <p>Bei sehr großen Distanzen zur Wasserentnahmestelle werden mehrere Pumpen in Reihenschaltung eingesetzt, um Druckverluste durch Reibung in den Schläuchen auszugleichen (siehe Betriebsarten).</p>
+  </div>`
+},
+{
+  id:"elektrik", num:"14", title:"Elektrische Anlagen am Fahrzeug",
+  sub:"Beleuchtung · Generator · Lichtmast",
+  body:`
+  <div class="block">
+    <h3>Fahrzeuggenerator</h3>
+    <p>Viele Löschfahrzeuge verfügen über einen Generator zur Stromversorgung von Beleuchtung und Elektrowerkzeugen am Einsatzort – der Maschinist überwacht Betrieb und Belastung.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Lichtmast</h3>
+    <p>Ausfahrbarer Lichtmast zur Ausleuchtung der Einsatzstelle – vor dem Ausfahren auf Hindernisse (Freileitungen, Bäume) und ausreichenden Stand des Fahrzeugs achten.</p>
+  </div>`
+},
+{
+  id:"fahrerlaubnis", num:"15", title:"Rechtliche Grundlagen Fahrerlaubnis",
+  sub:"Führerscheinklassen",
+  body:`
+  <div class="block">
+    <h3>Erforderliche Führerscheinklassen</h3>
+    <p>Je nach zulässigem Gesamtgewicht des Feuerwehrfahrzeugs sind unterschiedliche Führerscheinklassen erforderlich (z. B. Klasse C1 bis 7,5 t, Klasse C für schwerere Fahrzeuge) – Feuerwehrangehörige benötigen die passende Fahrerlaubnis für das jeweils zu fahrende Fahrzeug.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Zusätzliche Qualifikation</h3>
+    <p>Für bestimmte Fahrzeugtypen (z. B. Drehleiter) ist über die Fahrerlaubnis hinaus eine gesonderte maschinistische Ausbildung erforderlich, bevor das Fahrzeug im Einsatz eigenständig bedient werden darf.</p>
+  </div>`
+}
+];
+
+const QUIZ = [
+{m:"aufgaben",q:"Welche Aufgabe übernimmt der Maschinist häufig zusätzlich, wenn keine gesonderte Kraft eingeteilt ist?",o:["Gruppenführung","Atemschutzüberwachung","Schlauchverlegung","Fahrzeugreinigung vor Ort"],c:1,e:"Der Maschinist kann die Atemschutzüberwachung mit übernehmen."},
+{m:"aufgaben",q:"Wofür trägt der Maschinist zentrale Verantwortung?",o:["Nur für die Fahrzeugpflege","Für Fahrzeug, Pumpe und Wasserversorgung","Ausschließlich für den Funkverkehr","Für die Einsatztaktik der Gruppe"],c:1,e:"Der Maschinist verantwortet Fahrzeug, Pumpenbedienung und Wasserversorgung."},
+{m:"fahrzeugkunde",q:"Wofür steht die Abkürzung HLF?",o:["Hilfeleistungslöschgruppenfahrzeug","Hydraulisches Löschfahrzeug","Hochdrucklöschfahrzeug","Halb-Löschfahrzeug"],c:0,e:"HLF steht für Hilfeleistungslöschgruppenfahrzeug."},
+{m:"fahrzeugkunde",q:"Wofür ist die Drehleiter DLK 23/12 primär ausgelegt?",o:["Wasserförderung über lange Strecken","Rettung aus Höhen mit Korb","Schaummittelzumischung","Gefahrgutmessung"],c:1,e:"Die DLK dient der Rettung und Brandbekämpfung aus großer Höhe."},
+{m:"pumpenkunde",q:"Was gibt die Bezeichnung FPN 10-1000 an?",o:["1000 l/min bei 10 bar Förderdruck","10 l/min bei 1000 bar","1000 bar Maximaldruck","10 m Saughöhe"],c:0,e:"FPN 10-1000 fördert 1000 l/min bei 10 bar Ausgangsdruck."},
+{m:"pumpenkunde",q:"Was beschreibt die Pumpenkennlinie?",o:["Den Kraftstoffverbrauch der Pumpe","Den Zusammenhang zwischen Förderstrom und Förderdruck","Die Lebensdauer der Pumpe","Die Lautstärke im Betrieb"],c:1,e:"Mit steigendem Förderstrom sinkt der erreichbare Druck."},
+{m:"pumpenkunde",q:"Woran ist Kavitation erkennbar?",o:["Leiseres Laufgeräusch","Ungleichmäßiges Laufgeräusch und Förderstromeinbruch","Höherer Kraftstoffverbrauch","Farbänderung des Wassers"],c:1,e:"Kavitation zeigt sich durch ungleichmäßiges Geräusch und Leistungseinbruch."},
+{m:"wasserversorgung",q:"Was ist vor dem Ansaugen bei offener Wasserentnahme notwendig?",o:["Die Leitung entlüften","Die Pumpe abschalten","Den Schaummittelzumischer aktivieren","Die Handbremse lösen"],c:0,e:"Entlüftung über Trockenlaufschutz/Vorentlüfter ist notwendig, um ansaugen zu können."},
+{m:"wasserversorgung",q:"Was kennzeichnet eine geschlossene Wasserentnahme?",o:["Entnahme aus einem See","Entnahme aus dem Hydrantennetz","Entnahme aus einem Löschteich","Entnahme über Saugschlauch aus offenem Gewässer"],c:1,e:"Geschlossene Entnahme erfolgt über Hydranten."},
+{m:"bedienung",q:"Worauf muss bei Druckänderungen am Strahlrohr geachtet werden?",o:["Auf gar nichts, das ist Aufgabe des Angriffstrupps","Abstimmung mit dem Angriffstrupp, um Gefährdung zu vermeiden","Nur auf den Kraftstoffstand","Auf die Farbe des Schlauchs"],c:1,e:"Unabgestimmte Druckänderungen können den Trupp gefährden."},
+{m:"betriebsarten",q:"Wozu dient die Reihenschaltung von Pumpen?",o:["Zur Schaummittelzumischung","Zum Ausgleich von Druckverlusten über lange Förderstrecken","Zur Fahrzeugreinigung","Zur Atemschutzüberwachung"],c:1,e:"Mehrere Pumpen hintereinander gleichen Druckverluste über lange Strecken aus."},
+{m:"betriebsarten",q:"Was ist der Sammelbetrieb?",o:["Mehrere Zubringerleitungen speisen eine Pumpe gemeinsam","Mehrere Pumpen fördern in verschiedene Richtungen","Sammeln von Ausrüstung nach dem Einsatz","Ein Sonderfall der Schaumzumischung"],c:0,e:"Im Sammelbetrieb speisen mehrere Leitungen gemeinsam eine Pumpe."},
+{m:"zumischung",q:"Welche Zumischraten sind bei Schaummittel typisch?",o:["0,1 %, 0,5 %, 1 %","1 %, 3 %, 6 %","10 %, 20 %, 30 %","50 %, 75 %, 100 %"],c:1,e:"Übliche Zumischraten liegen bei 1 %, 3 % oder 6 %."},
+{m:"zumischung",q:"Wie funktioniert ein Injektor-/Venturi-Zumischer?",o:["Er nutzt den Wasserdruck zur Ansaugung des Schaummittels","Er benötigt eine eigene Stromversorgung","Er arbeitet nur bei Niederdruck","Er mischt manuell per Hand"],c:0,e:"Der Wasserdruck saugt das Schaummittel über den Venturi-Effekt an."},
+{m:"wartung",q:"Was gehört zur Nachbereitung nach dem Einsatz?",o:["Nur das Abstellen des Fahrzeugs","Reinigung, Kontrolle der Betriebsstoffe, Beladung prüfen","Ausschließlich die Reinigung der Schläuche","Nichts, das übernimmt die Werkstatt"],c:1,e:"Reinigung, Betriebsstoffkontrolle und Beladungsprüfung stellen die Einsatzbereitschaft wieder her."},
+{m:"wartung",q:"Wo werden wiederkehrende Prüfungen von Fahrzeug und Pumpe dokumentiert?",o:["Im Prüfbuch","Nirgends, das ist nicht vorgeschrieben","Nur mündlich weitergegeben","Im Atemschutznachweis"],c:0,e:"Prüfungen werden im Prüfbuch dokumentiert."},
+{m:"sicherheit",q:"Was entbindet das Wegerecht nach §35 StVO NICHT?",o:["Von der allgemeinen Sorgfaltspflicht","Von der Nutzung des Blaulichts","Von der Anmeldung bei der Leitstelle","Von der Fahrzeugwartung"],c:0,e:"Sonderrechte entbinden nicht von der Sorgfaltspflicht im Straßenverkehr."},
+{m:"sicherheit",q:"Was sollte der Maschinist beim Aufstellen des Fahrzeugs am Einsatzort beachten?",o:["Möglichst nah an das brennende Gebäude fahren","Sicher und platzsparend aufstellen, Rettungswege freihalten","Immer quer zur Fahrbahn parken","Das Fahrzeug abschließen"],c:1,e:"Sichere Aufstellung unter Freihaltung von Rettungswegen ist zentral."},
+{m:"zusammenwirken",q:"Worüber sollte der Maschinist den Gruppenführer informieren?",o:["Nur über den Feierabend","Über kritische Wasserstände und technische Störungen","Über private Angelegenheiten","Über die Wetterlage"],c:1,e:"Kritische Wasserstände und technische Störungen sind meldepflichtig."},
+{m:"zusammenwirken",q:"Wo bleibt der Maschinist während des Innenangriffs typischerweise?",o:["Er geht mit in das Gebäude","Er bleibt einsatzbereit am Fahrzeug","Er übernimmt die Erkundung","Er fährt zur Wache zurück"],c:1,e:"Der Maschinist überwacht Pumpe und Wasserversorgung am Fahrzeug."},
+{m:"pumpenkunde",q:"Wie hoch ist die maximale theoretische geodätische Saughöhe einer Feuerlöschkreiselpumpe ungefähr?",o:["3 m","7,5 m","15 m","25 m"],c:1,e:"Theoretisch ca. 7,5 m, praktisch meist weniger."},
+{m:"fahrzeugkunde",q:"Was zeichnet ein TLF 3000/4000 besonders aus?",o:["Großer Wassertank für schnellen Erstangriff","Drehleiter mit Korb","Umfangreiche THL-Ausstattung","Schaummittelproduktion vor Ort"],c:0,e:"TLF verfügen über einen großen Wassertank für den schnellen Erstangriff."},
+{m:"wasserversorgung",q:"Wie wird Wasser über eine lange Wegstrecke zur Einsatzstelle gefördert?",o:["Ausschließlich über den Fahrzeugtank","Über Reihenschaltung mehrerer Pumpen","Nur über Hydranten direkt am Objekt","Das ist grundsätzlich nicht möglich"],c:1,e:"Reihenschaltung mehrerer Pumpen ermöglicht Förderung über lange Distanzen."},
+{m:"aufgaben",q:"Welche Grundhaltung braucht der Maschinist während des gesamten Einsatzes?",o:["Ständige Einsatzbereitschaft und Überwachung der Systeme","Nur zu Beginn des Einsatzes aktiv sein","Er kann sich nach dem Anfahren zurückziehen","Nur bei technischen Störungen aktiv werden"],c:0,e:"Der Maschinist bleibt durchgehend einsatzbereit und überwacht Pumpe/Fahrzeug."},
+{m:"sonderfahrzeuge",q:"Was ist vor dem Ausfahren des Leiterparks einer Drehleiter zu prüfen?",o:["Nichts, es kann sofort ausgefahren werden","Tragfähiger Untergrund und ausreichende Abstützung","Nur die Farbe des Fahrzeugs","Die Uhrzeit"],c:1,e:"Untergrund und Abstützung sind zentrale Sicherheitsvoraussetzungen."},
+{m:"sonderfahrzeuge",q:"Wofür ist ein Wechselladerfahrzeug (WLF) ausgelegt?",o:["Nur für Löschwasserförderung","Als Trägerfahrzeug für auswechselbare Abrollbehälter","Nur für Personentransport","Ausschließlich für Drehleitereinsätze"],c:1,e:"WLF transportieren flexibel austauschbare Abrollbehälter."},
+{m:"sonderfahrzeuge",q:"Wobei unterstützt der Maschinist beim Rüstwageneinsatz häufig?",o:["Bei der medizinischen Versorgung","Beim Bereitstellen von hydraulischem Rettungsgerät und Beleuchtung","Bei der Presse-/Öffentlichkeitsarbeit","Bei der Wasserversorgung ausschließlich"],c:1,e:"Der Maschinist unterstützt bei der Bereitstellung von THL-Ausrüstung."},
+{m:"digitale_systeme",q:"Wofür steht AVL im Fahrzeugkontext?",o:["Ein Löschmittel","Automatische Fahrzeugortung","Ein Pumpentyp","Eine Führerscheinklasse"],c:1,e:"AVL steht für automatische Fahrzeugortung (Automatic Vehicle Location)."},
+{m:"digitale_systeme",q:"Ersetzt digitale Navigationsunterstützung die Ortskenntnis des Maschinisten?",o:["Ja, vollständig","Nein, sie ergänzt sie nur","Nur bei Nachtfahrten","Nur außerhalb der Stadt"],c:1,e:"Digitale Navigation ergänzt, ersetzt aber nicht Ortskenntnis und aufmerksame Fahrweise."},
+{m:"foerderung_sonderfaelle",q:"Was beeinflusst den nötigen Pumpendruck bei Höhenunterschieden?",o:["Die geodätische Höhe zwischen Wasserentnahme und Einsatzstelle","Die Fahrzeugfarbe","Die Tageszeit","Der Kraftstoffstand"],c:0,e:"Höhenunterschiede beeinflussen den erforderlichen Förderdruck."},
+{m:"foerderung_sonderfaelle",q:"Wie wird bei sehr langen Förderstrecken vorgegangen?",o:["Es wird nur eine einzelne Pumpe verwendet","Mehrere Pumpen werden in Reihenschaltung eingesetzt","Die Förderung ist dann nicht möglich","Es wird auf Schaummittel umgestellt"],c:1,e:"Reihenschaltung gleicht Druckverluste bei langen Strecken aus."},
+{m:"elektrik",q:"Wozu dient der Fahrzeuggenerator?",o:["Zur Wasseraufbereitung","Zur Stromversorgung von Beleuchtung und Elektrowerkzeugen","Zur Schaummittelproduktion","Er hat keine praktische Funktion"],c:1,e:"Der Generator versorgt elektrische Geräte am Einsatzort."},
+{m:"elektrik",q:"Worauf ist vor dem Ausfahren des Lichtmastes zu achten?",o:["Auf nichts Besonderes","Auf Hindernisse wie Freileitungen und ausreichenden Fahrzeugstand","Nur auf die Windrichtung","Auf die Farbe des Lichts"],c:1,e:"Hindernisse und sicherer Stand müssen vor dem Ausfahren geprüft werden."},
+{m:"fahrerlaubnis",q:"Wovon hängt die erforderliche Führerscheinklasse für ein Feuerwehrfahrzeug ab?",o:["Vom Alter des Fahrzeugs","Vom zulässigen Gesamtgewicht des Fahrzeugs","Von der Fahrzeugfarbe","Von der Anzahl der Sitzplätze allein"],c:1,e:"Das zulässige Gesamtgewicht bestimmt die notwendige Führerscheinklasse."},
+{m:"fahrerlaubnis",q:"Was ist zusätzlich zur Fahrerlaubnis für die Bedienung einer Drehleiter notwendig?",o:["Nichts Zusätzliches","Eine gesonderte maschinistische Ausbildung","Nur ein höheres Mindestalter","Ein Bootsführerschein"],c:1,e:"Für die Drehleiter ist eine spezielle Zusatzausbildung erforderlich."},
+{m:"pumpenkunde",q:"Was passiert mit dem erreichbaren Druck, wenn mehr Wasser abgegeben wird?",o:["Er steigt automatisch an","Er sinkt gemäß der Pumpenkennlinie","Er bleibt exakt gleich","Die Pumpe schaltet sich ab"],c:1,e:"Mit steigendem Förderstrom sinkt gemäß Kennlinie der erreichbare Druck."},
+{m:"wasserversorgung",q:"Was ist eine geschlossene Wasserentnahme?",o:["Entnahme aus einem Fluss","Entnahme aus dem Hydrantennetz","Entnahme mit Saugschlauch aus einem Teich","Entnahme ohne jede technische Vorbereitung"],c:1,e:"Geschlossene Entnahme erfolgt über das Hydrantennetz."},
+{m:"betriebsarten",q:"Was passiert bei zu geringer Zulaufmenge einer einzelnen Zubringerleitung?",o:["Nichts, das ist unproblematisch","Sammelbetrieb mit mehreren Leitungen kann eingesetzt werden","Der Löscheinsatz muss abgebrochen werden","Die Pumpe schaltet automatisch auf Schaum um"],c:1,e:"Sammelbetrieb erhöht den Förderstrom bei begrenztem Einzelzulauf."},
+{m:"zumischung",q:"Was ist der Vorteil einer fest verbauten Druckzumischanlage gegenüber einem Injektor-Zumischer?",o:["Geringere Kosten","Exaktere Dosierung des Schaummittels","Kein Wasser wird benötigt","Sie funktioniert ohne Pumpe"],c:1,e:"Druckzumischanlagen ermöglichen eine präzisere Dosierung."},
+{m:"wartung",q:"Was sollte nach jedem Einsatz kontrolliert werden?",o:["Nur die Fahrzeugfarbe","Betriebsstoffe, Beladung und Zustand von Fahrzeug/Pumpe","Nur der Kraftstoffstand","Gar nichts, das übernimmt die nächste Schicht"],c:1,e:"Umfassende Kontrolle stellt die Einsatzbereitschaft sicher."},
+{m:"sicherheit",q:"Was ist bei der Aufstellung des Fahrzeugs am Einsatzort besonders wichtig?",o:["Möglichst schnell und ohne Rücksicht auf Rettungswege parken","Rettungswege freihalten und sicher aufstellen","Das Fahrzeug quer zur Fahrbahn abstellen","Die Handbremse zu lösen"],c:1,e:"Freihaltung von Rettungswegen ist ein Kernaspekt sicherer Aufstellung."},
+{m:"bedienung",q:"Was sollte der Maschinist während des Pumpenbetriebs ständig kontrollieren?",o:["Nur den Kraftstoffstand","Betriebsdruck, Kühlwassertemperatur und Kraftstoffstand","Nur die Wetterlage","Nichts, das läuft automatisch"],c:1,e:"Ständige Kontrolle der Betriebsparameter gehört zur Aufgabe des Maschinisten."},
+{m:"zusammenwirken",q:"Wie bleibt der Maschinist mit dem Gruppenführer während des Einsatzes in Verbindung?",o:["Gar nicht, das ist nicht vorgesehen","Über ständigen Kontakt und Meldungen","Nur am Ende des Einsatzes","Nur über Dritte"],c:1,e:"Ständiger Kontakt zum Gruppenführer ist Teil der Aufgabe des Maschinisten."},
+{m:"fahrzeugkunde",q:"Was zeichnet ein HLF im Vergleich zu einem einfachen LF zusätzlich aus?",o:["Größerer Wassertank ausschließlich","Zusätzliche Ausstattung für technische Hilfeleistung","Nur ein anderer Anstrich","Weniger Beladung"],c:1,e:"HLF verfügen zusätzlich über THL-Ausrüstung."},
+{m:"aufgaben",q:"Welche Aufgabe kann der Maschinist zusätzlich zur Fahrzeugbedienung übernehmen?",o:["Die Einsatzleitung des gesamten Zuges","Die Atemschutzüberwachung","Die medizinische Erstversorgung","Die Pressearbeit"],c:1,e:"Der Maschinist kann die Atemschutzüberwachung mit übernehmen."},
+{m:"pumpenkunde",q:"Welche Rolle spielt der NPSH-Wert bei der Pumpenbedienung?",o:["Er beschreibt die Fahrzeugfarbe","Er kennzeichnet den zulässigen Unterdruck zur Vermeidung von Kavitation","Er misst die Motorleistung","Er hat keine praktische Bedeutung"],c:1,e:"Der NPSH-Wert ist relevant zur Vermeidung von Kavitationsschäden."},
+{m:"pumpenkunde",q:"Was passiert physikalisch bei Kavitation?",o:["Das Wasser gefriert","Dampfblasen entstehen und implodieren mit lokalen Druckstößen","Die Pumpe läuft schneller","Es entsteht kein besonderer Effekt"],c:1,e:"Kollabierende Dampfblasen erzeugen lokale Druckstöße, die das Material erodieren."},
+{m:"pumpenkunde",q:"Nach den Affinitätsgesetzen: Wie verändert sich der Druck bei Verdopplung der Pumpendrehzahl?",o:["Er bleibt gleich","Er verdoppelt sich","Er vervierfacht sich (p ~ n²)","Er halbiert sich"],c:2,e:"Der Druck steigt proportional zum Quadrat der Drehzahl."},
+{m:"pumpenkunde",q:"Wie verändert sich die benötigte Antriebsleistung bei Verdopplung der Drehzahl?",o:["Sie verdoppelt sich","Sie vervierfacht sich","Sie verachtfacht sich (P ~ n³)","Sie bleibt konstant"],c:2,e:"Die Antriebsleistung steigt mit der dritten Potenz der Drehzahl."},
+{m:"pumpenkunde",q:"Woraus ergibt sich die theoretische Grenze der geodätischen Saughöhe?",o:["Aus der Pumpenfarbe","Aus dem Atmosphärendruck, der das Wasser hochdrückt","Aus der Motorleistung allein","Sie ist unbegrenzt"],c:1,e:"Der Atmosphärendruck begrenzt die theoretisch mögliche Saughöhe auf ca. 10,3 m."},
+{m:"wasserversorgung",q:"Wie verändert sich der Druckverlust in einer Förderstrecke, wenn der Förderstrom verdoppelt wird?",o:["Er bleibt gleich","Er verdoppelt sich","Er vervierfacht sich","Er sinkt"],c:2,e:"Der Druckverlust steigt quadratisch mit dem Förderstrom."},
+{m:"wasserversorgung",q:"Was ist bei hohem Wasserbedarf über lange Strecken oft effizienter als eine einzelne Hochdruckleitung?",o:["Eine noch dünnere Leitung","Parallele Leitungen oder größere Schlauchdurchmesser","Der komplette Verzicht auf Förderung","Ein langsamerer Pumpenbetrieb"],c:1,e:"Parallele oder größere Leitungen reduzieren den Druckverlust bei hohem Durchfluss."},
+{m:"pumpenkunde",q:"Wie wird Druckenergie in einer Kreiselpumpe erzeugt?",o:["Durch chemische Reaktion","Durch Beschleunigung im Laufrad und Umwandlung im Spiralgehäuse","Durch Erhitzen des Wassers","Durch Kompression von Luft"],c:1,e:"Das Laufrad beschleunigt Wasser, das Gehäuse wandelt Geschwindigkeit in Druck um."}
+];
+
+const STORAGE_KEY = "maschinist_lernapp_v1";
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"done":{}}');
+let currentModuleId = null;
+let quizQueue = [], quizIndex = 0, quizScore = 0, quizAnswered = false, quizFilterModule = "all";
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function updateHero(){
+  const total = MODULES.length;
+  const doneCount = MODULES.filter(m => state.done[m.id]).length;
+  const pct = Math.round((doneCount/total)*100);
+  const circumference = 213.6;
+  const offset = circumference - (circumference * pct/100);
+  document.getElementById("gaugeFill").style.strokeDashoffset = offset;
+  document.getElementById("gaugePct").textContent = pct + "%";
+  document.getElementById("heroSub").textContent = `Ausbildungsstand · ${doneCount} von ${total} Modulen abgeschlossen`;
+}
+function renderModGrid(){
+  const grid = document.getElementById("modGrid");
+  grid.innerHTML = MODULES.map(m => `
+    <div class="mod-card" onclick="openModule('${m.id}')">
+      <div class="mod-num">${m.num}</div>
+      <div class="mod-info"><div class="mtitle">${m.title}</div><div class="msub">${m.sub}</div></div>
+      <div class="mod-check ${state.done[m.id] ? 'done' : ''}"></div>
+    </div>`).join("");
+}
+function openModule(id){
+  const m = MODULES.find(x => x.id === id);
+  currentModuleId = id;
+  document.getElementById("detailNum").textContent = "Modul " + m.num;
+  document.getElementById("detailTitle").textContent = m.title;
+  document.getElementById("detailSub").textContent = m.sub;
+  document.getElementById("detailBody").innerHTML = m.body;
+  const btn = document.getElementById("markDoneBtn");
+  btn.textContent = state.done[id] ? "✓ Durchgearbeitet" : "Als durchgearbeitet markieren";
+  btn.className = "mark-done-btn" + (state.done[id] ? " is-done" : "");
+  showView("detail");
+}
+document.getElementById("markDoneBtn").addEventListener("click", () => {
+  if(!currentModuleId) return;
+  state.done[currentModuleId] = !state.done[currentModuleId];
+  saveState(); openModule(currentModuleId); updateHero(); renderModGrid();
+});
+function showView(name){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + name).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+  document.querySelectorAll(".bn-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+}
+document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.view)));
+function renderQuizFilter(){
+  const wrap = document.getElementById("quizFilter");
+  const chips = [{id:"all", label:"Alle Module"}].concat(MODULES.map(m => ({id:m.id, label:m.title})));
+  wrap.innerHTML = chips.map(c => `<button class="qf-chip ${quizFilterModule===c.id?'active':''}" data-id="${c.id}">${c.label}</button>`).join("");
+  wrap.querySelectorAll(".qf-chip").forEach(chip => chip.addEventListener("click", () => { quizFilterModule = chip.dataset.id; renderQuizFilter(); }));
+}
+function startQuiz(){
+  let pool = quizFilterModule === "all" ? QUIZ.slice() : QUIZ.filter(q => q.m === quizFilterModule);
+  pool = pool.sort(() => Math.random() - 0.5);
+  quizQueue = pool; quizIndex = 0; quizScore = 0;
+  document.getElementById("quizIntro").style.display = "none";
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizRunning").style.display = "block";
+  renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  quizAnswered = false;
+  const q = quizQueue[quizIndex];
+  const modTitle = MODULES.find(m => m.id === q.m).title;
+  const box = document.getElementById("quizRunning");
+  box.innerHTML = `
+    <div class="quiz-progress"><span>Frage ${quizIndex+1} / ${quizQueue.length}</span><span>${modTitle}</span></div>
+    <div class="q-card">
+      <div class="q-text">${q.q}</div>
+      <div id="qOpts">${q.o.map((opt,i) => `<button class="q-opt" data-i="${i}">${opt}</button>`).join("")}</div>
+      <div id="qExplainWrap"></div>
+    </div>`;
+  box.querySelectorAll(".q-opt").forEach(btn => btn.addEventListener("click", () => selectAnswer(parseInt(btn.dataset.i))));
+}
+function selectAnswer(i){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQueue[quizIndex];
+  const opts = document.querySelectorAll(".q-opt");
+  opts.forEach((btn, idx) => {
+    if(idx === q.c) btn.classList.add("correct");
+    else if(idx === i) btn.classList.add("wrong");
+    btn.style.pointerEvents = "none";
+  });
+  if(i === q.c) quizScore++;
+  document.getElementById("qExplainWrap").innerHTML = `
+    <div class="q-explain">${q.e}</div>
+    <button class="q-next-btn" onclick="nextQuizQuestion()">${quizIndex < quizQueue.length-1 ? 'Nächste Frage' : 'Ergebnis anzeigen'}</button>`;
+}
+function nextQuizQuestion(){
+  quizIndex++;
+  if(quizIndex >= quizQueue.length){ showQuizResult(); } else { renderQuizQuestion(); }
+}
+function showQuizResult(){
+  document.getElementById("quizRunning").style.display = "none";
+  const doneBox = document.getElementById("quizDone");
+  doneBox.style.display = "block";
+  const pct = Math.round((quizScore/quizQueue.length)*100);
+  doneBox.innerHTML = `
+    <div class="quiz-result"><div class="score">${quizScore}/${quizQueue.length}</div><div class="score-label">${pct}% richtig beantwortet</div></div>
+    <button class="quiz-start-btn" onclick="resetQuizView()">Neue Prüfung</button>`;
+}
+function resetQuizView(){
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizIntro").style.display = "block";
+}
+renderModGrid(); renderQuizFilter(); updateHero();
+</script>
+</body>
+</html>

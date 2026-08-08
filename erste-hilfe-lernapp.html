@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Erste Hilfe · Lernapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C0E; --bg-elevated:#14181B; --bg-card:#181C1F;
+  --line:#262B2F; --line-soft:#1D2124;
+  --text:#E8E6E1; --text-dim:#8A9199; --text-faint:#565D63;
+  --accent:#D9527A; --accent-dim:#6E2940;
+  --amber:#E8A33D; --teal:#3FA79A; --teal-dim:#245852; --red:#C1361B;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+body{padding-bottom:70px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);}
+h1,h2,h3{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em;}
+header.hero{padding:22px 18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101316,var(--bg));}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.hero-title h1{font-size:26px;color:var(--text);}
+.hero-title .eyebrow{margin-bottom:4px;}
+.gauge-wrap{position:relative;width:74px;height:74px;flex-shrink:0;}
+.gauge-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:var(--line);stroke-width:7;}
+.gauge-fill{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .6s ease;}
+.gauge-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);}
+.hero-sub{margin-top:10px;font-size:12.5px;color:var(--text-dim);}
+nav.tabs{display:flex;overflow-x:auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg-elevated);position:sticky;top:0;z-index:20;scrollbar-width:none;}
+nav.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.03em;padding:8px 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);white-space:nowrap;cursor:pointer;}
+.tab-btn.active{background:var(--accent);color:#210A12;border-color:var(--accent);font-weight:600;}
+main{padding:16px 14px 30px;max-width:640px;margin:0 auto;}
+.view{display:none;}
+.view.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.mod-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.mod-card{display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;cursor:pointer;}
+.mod-card:active{border-color:var(--accent-dim);}
+.mod-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);width:22px;flex-shrink:0;}
+.mod-info{flex:1;min-width:0;}
+.mod-info .mtitle{font-family:'Oswald',sans-serif;font-size:15px;font-weight:500;color:var(--text);}
+.mod-info .msub{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.mod-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.mod-check.done{background:var(--teal);border-color:var(--teal);}
+.mod-check.done::after{content:'✓';font-size:11px;color:#04211D;font-weight:700;}
+.mod-header{margin-bottom:14px;}
+.back-btn{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0 0 10px;display:flex;align-items:center;gap:4px;}
+.mod-header h2{font-size:22px;margin-bottom:4px;}
+.mod-header .msub{font-size:12.5px;color:var(--text-dim);}
+.block{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;margin-bottom:10px;}
+.block h3{font-size:14px;color:var(--accent);margin-bottom:8px;letter-spacing:.02em;}
+.block h3.teal{color:var(--teal);}
+.block h3.red{color:var(--red);}
+.block h3.amber{color:var(--amber);}
+.block p{font-size:13.5px;line-height:1.55;color:var(--text);margin-bottom:6px;}
+.block ul{padding-left:18px;margin:4px 0;}
+.block li{font-size:13.5px;line-height:1.6;color:var(--text);margin-bottom:4px;}
+.block li b{color:var(--text);font-weight:600;}
+.block .note{font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic;}
+.warn-box{border-left:3px solid var(--red);background:rgba(193,54,27,.08);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:8px;}
+.warn-box p{font-size:12.5px;color:#E8B9AC;margin:0;}
+.warn-box .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:4px;}
+.figure{background:#0E1114;border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0;text-align:center;}
+.figure svg{max-width:100%;height:auto;}
+.figure-caption{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);margin-top:8px;letter-spacing:.02em;}
+.calc-box{background:#0E1114;border:1px solid var(--accent-dim);border-radius:8px;padding:12px 14px;margin:10px 0;}
+.calc-box .calc-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:6px;}
+.calc-box .calc-formula{font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--text);line-height:1.7;}
+.calc-box .calc-result{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--accent);font-weight:600;margin-top:6px;}
+.mark-done-btn{width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--teal-dim);background:transparent;color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:.04em;cursor:pointer;margin-top:6px;}
+.mark-done-btn.is-done{background:var(--teal);color:#04211D;border-color:var(--teal);}
+.quiz-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.qf-chip{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:6px 10px;border-radius:14px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);cursor:pointer;}
+.qf-chip.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal-dim);}
+.quiz-start-btn{width:100%;padding:15px;background:var(--accent);color:#210A12;border:none;border-radius:var(--radius);font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+.quiz-progress{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:8px;display:flex;justify-content:space-between;}
+.q-card{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+.q-text{font-size:15px;line-height:1.5;margin-bottom:14px;color:var(--text);font-family:'Oswald',sans-serif;font-weight:400;}
+.q-opt{display:block;width:100%;text-align:left;padding:12px 13px;margin-bottom:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg-elevated);color:var(--text);font-size:13.5px;cursor:pointer;}
+.q-opt.correct{border-color:var(--teal);background:rgba(63,167,154,.12);color:var(--teal);}
+.q-opt.wrong{border-color:var(--red);background:rgba(193,54,27,.12);color:#E8998A;}
+.q-explain{font-size:12.5px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);line-height:1.5;}
+.q-next-btn{width:100%;padding:13px;margin-top:14px;background:var(--teal);color:#04211D;border:none;border-radius:8px;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+.quiz-result{text-align:center;padding:30px 16px;}
+.quiz-result .score{font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--accent);font-weight:600;}
+.quiz-result .score-label{font-size:12px;color:var(--text-dim);margin-top:4px;}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg-elevated);border-top:1px solid var(--line);z-index:30;}
+.bn-btn{flex:1;padding:10px 4px 12px;text-align:center;background:none;border:none;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.02em;cursor:pointer;}
+.bn-btn.active{color:var(--accent);}
+.bn-icon{display:block;font-size:18px;margin-bottom:3px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-top">
+    <div class="hero-title">
+      <div class="eyebrow">Notfallmedizin für Einsatzkräfte · Lehrmeinung Bayern / AGBF</div>
+      <h1>Erste Hilfe</h1>
+    </div>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 80 80">
+        <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>
+        <circle id="gaugeFill" class="gauge-fill" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+      </svg>
+      <div class="gauge-pct" id="gaugePct">0%</div>
+    </div>
+  </div>
+  <div class="hero-sub" id="heroSub">Ausbildungsstand · 0 von 10 Modulen abgeschlossen</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="uebersicht">Module</button>
+  <button class="tab-btn" data-view="spickzettel">Spickzettel</button>
+  <button class="tab-btn" data-view="quiz">Prüfung</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-uebersicht">
+    <div class="mod-grid" id="modGrid"></div>
+  </section>
+
+  <section class="view" id="view-detail">
+    <button class="back-btn" onclick="showView('uebersicht')">← Alle Module</button>
+    <div class="mod-header">
+      <div class="eyebrow" id="detailNum"></div>
+      <h2 id="detailTitle"></h2>
+      <div class="msub" id="detailSub"></div>
+    </div>
+    <div id="detailBody"></div>
+    <button class="mark-done-btn" id="markDoneBtn">Als durchgearbeitet markieren</button>
+  </section>
+
+  <section class="view" id="view-spickzettel">
+    <div class="block">
+      <h3>ABCDE-Schema</h3>
+      <div class="table-row"><span class="k">A</span><span class="v">Airway – Atemwege</span></div>
+      <div class="table-row"><span class="k">B</span><span class="v">Breathing – Atmung</span></div>
+      <div class="table-row"><span class="k">C</span><span class="v">Circulation – Kreislauf</span></div>
+      <div class="table-row"><span class="k">D</span><span class="v">Disability – Bewusstsein/Neurologie</span></div>
+      <div class="table-row"><span class="k">E</span><span class="v">Exposure – Entkleiden/Umgebung</span></div>
+    </div>
+    <div class="block">
+      <h3 class="teal">Reanimation Grundschema</h3>
+      <p>30 Herzdruckmassagen im Wechsel mit 2 Beatmungen (30:2), Frequenz ca. 100–120/min, Drucktiefe ca. 5–6 cm beim Erwachsenen – bis Übernahme durch Rettungsdienst oder Wiedereinsetzen der Spontanatmung.</p>
+    </div>
+    <div class="block">
+      <h3 class="amber">Schocklage</h3>
+      <p>Bei Kreislaufschock: Beine hochlagern (sofern keine Kontraindikation wie Wirbelsäulen-/Beinverletzung vorliegt), warmhalten, beruhigen, kontinuierlich überwachen.</p>
+    </div>
+</section>
+
+  <section class="view" id="view-quiz">
+    <div id="quizIntro">
+      <div class="block">
+        <h3>Prüfungsmodus</h3>
+        <p>Fragen zu allen Modulen. Auswahl nach Themenbereich möglich.</p>
+      </div>
+      <div class="quiz-filter" id="quizFilter"></div>
+      <button class="quiz-start-btn" onclick="startQuiz()">Prüfung starten</button>
+    </div>
+    <div id="quizRunning" style="display:none;"></div>
+    <div id="quizDone" style="display:none;"></div>
+  </section>
+</main>
+
+<nav class="bottomnav">
+  <button class="bn-btn active" data-view="uebersicht" onclick="showView('uebersicht')"><span class="bn-icon">▤</span>Module</button>
+  <button class="bn-btn" data-view="spickzettel" onclick="showView('spickzettel')"><span class="bn-icon">◈</span>Spickzettel</button>
+  <button class="bn-btn" data-view="quiz" onclick="showView('quiz')"><span class="bn-icon">◉</span>Prüfung</button>
+</nav>
+
+<script>
+const MODULES = [
+{
+  id:"grundlagen", num:"01", title:"Grundlagen Erste Hilfe",
+  sub:"Rechtliche Pflicht · ABCDE",
+  body:`
+  <div class="block">
+    <h3>Rechtliche Pflicht</h3>
+    <p>Erste Hilfe zu leisten ist gesetzlich verankerte Pflicht – für Feuerwehrangehörige zusätzlich fester Bestandteil der Grundausbildung und regelmäßig aufzufrischen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">ABCDE-Schema</h3>
+    <p>Strukturierte Erstuntersuchung nach Atemwege, Atmung, Kreislauf, Bewusstsein/Neurologie und Entkleiden/Umgebung – stellt sicher, dass lebensbedrohliche Probleme in der richtigen Reihenfolge erkannt werden.</p>
+  </div>`
+},
+{
+  id:"sofortmassnahmen", num:"02", title:"Lebensrettende Sofortmaßnahmen",
+  sub:"Stabile Seitenlage · Reanimation",
+  body:`
+  <div class="block">
+    <h3>Stabile Seitenlage</h3>
+    <p>Bei bewusstloser, aber normal atmender Person wird die stabile Seitenlage angewendet, um die Atemwege freizuhalten und Aspiration von Erbrochenem zu verhindern.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Reanimation</h3>
+    <p>Bei fehlender normaler Atmung: sofortiger Beginn der Herz-Lungen-Wiederbelebung im Verhältnis 30:2, bis der Rettungsdienst übernimmt oder ein Defibrillator verfügbar ist.</p>
+  </div>
+  <div class="block">
+    <h3 class="amber">Physiologischer Hintergrund der Herzdruckmassage</h3>
+    <p>Beim Herzstillstand kommt die Pumpfunktion des Herzens zum Erliegen, wodurch die Sauerstoffversorgung des Gehirns unterbrochen wird. Bereits nach ca. 3–5 Minuten ohne Kreislauf setzen irreversible Hirnschäden ein. Die Herzdruckmassage erzeugt durch mechanischen Druck auf den Brustkorb einen künstlichen Kreislauf: Das Herz wird zwischen Brustbein und Wirbelsäule komprimiert und presst dabei Blut in den Kreislauf – bei korrekter Ausführung wird so ein Bruchteil (ca. 20–30 %) des normalen Herzzeitvolumens aufrechterhalten, ausreichend, um die kritischsten Organe (Gehirn, Herzmuskel) notdürftig zu versorgen und die Zeit bis zur Defibrillation zu überbrücken.</p>
+  </div>
+  <div class="calc-box">
+    <span class="calc-label">Zeitkritischer Verlauf ohne Reanimation</span>
+    <div class="calc-formula">Überlebenschance sinkt ohne Reanimation um ca. 10 % pro Minute ohne Wiederbelebungsmaßnahmen</div>
+    <div class="calc-result">Sofortiger Beginn der Laienreanimation kann die Überlebenschance mehr als verdoppeln</div>
+  </div>`
+},
+{
+  id:"blutungen", num:"03", title:"Blutungen & Wundversorgung",
+  sub:"Druckverband · Abbinden",
+  body:`
+  <div class="block">
+    <h3>Starke Blutungen</h3>
+    <p>Bei starker Blutung zunächst direkter Druck auf die Wunde, ggf. Druckverband anlegen – bei lebensbedrohlicher Extremitätenblutung kann als letztes Mittel ein Abbindesystem (Tourniquet) notwendig sein.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Wundversorgung</h3>
+    <p>Wunden möglichst steril abdecken, Fremdkörper in der Wunde nicht entfernen, sondern umpolstern und fixieren – weitere Versorgung durch den Rettungsdienst.</p>
+  </div>`
+},
+{
+  id:"schock", num:"04", title:"Schockbekämpfung",
+  sub:"Erkennung · Erstmaßnahmen",
+  body:`
+  <div class="block">
+    <h3>Erkennungsmerkmale</h3>
+    <p>Blasse, kaltschweißige Haut, schneller flacher Puls, Unruhe oder Verwirrtheit können auf einen beginnenden Kreislaufschock hindeuten.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Erstmaßnahmen</h3>
+    <p>Beine hochlagern (wenn keine Kontraindikation vorliegt), Person warmhalten und beruhigen, kontinuierliche Überwachung von Bewusstsein und Atmung bis zur Übergabe an den Rettungsdienst.</p>
+  </div>`
+},
+{
+  id:"trauma_thl", num:"05", title:"Trauma-Erstversorgung bei THL",
+  sub:"Schnittstelle Feuerwehr–Rettungsdienst",
+  body:`
+  <div class="block">
+    <h3>Besonderheiten bei technischer Rettung</h3>
+    <p>Bei eingeklemmten Personen erfolgt die medizinische Betreuung parallel zur technischen Rettung – Feuerwehr unterstützt den Rettungsdienst durch Zugang schaffen und stabile Rahmenbedingungen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Kommunikation</h3>
+    <p>Enge Absprache zwischen technischer Rettung und medizinischer Versorgung verhindert zusätzliche Belastung der verletzten Person während der Rettung.</p>
+  </div>`
+},
+{
+  id:"verbrennungen", num:"06", title:"Verbrennungen",
+  sub:"Erstversorgung",
+  body:`
+  <div class="block">
+    <h3>Sofortmaßnahmen</h3>
+    <p>Betroffene Stelle kurz mit handwarmem Wasser kühlen (keine Eiswürfel, keine übermäßig lange Kühlung), Kleidung nur entfernen, wenn sie nicht mit der Haut verklebt ist.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Abdeckung</h3>
+    <p>Verbrannte Areale steril und locker abdecken, keine Salben oder Hausmittel auftragen – zügige Übergabe an den Rettungsdienst bei größerflächigen oder tiefen Verbrennungen.</p>
+  </div>`
+},
+{
+  id:"atemwege", num:"07", title:"Atemwegsmanagement Basics",
+  sub:"Freimachen · Fremdkörper",
+  body:`
+  <div class="block">
+    <h3>Atemwege freimachen</h3>
+    <p>Überstrecken des Kopfes und Anheben des Kinns öffnet bei bewusstlosen Personen häufig die durch die Zunge verlegten Atemwege.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Fremdkörperverlegung</h3>
+    <p>Bei sichtbarer, greifbarer Verlegung vorsichtig entfernen; bei starkem Ersticken Rückenschläge und ggf. Heimlich-Handgriff nach den aktuellen Erste-Hilfe-Richtlinien anwenden.</p>
+  </div>`
+},
+{
+  id:"rettungsdienst_zusammenarbeit", num:"08", title:"Zusammenarbeit mit dem Rettungsdienst",
+  sub:"Übergabe · Kommunikation",
+  body:`
+  <div class="block">
+    <h3>Strukturierte Übergabe</h3>
+    <p>Bei Übergabe an den Rettungsdienst werden Zustand, durchgeführte Maßnahmen und Besonderheiten knapp und strukturiert kommuniziert.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Unterstützung</h3>
+    <p>Feuerwehrkräfte unterstützen den Rettungsdienst je nach Ausbildungsstand weiter bei Transport, technischer Rettung oder einfachen medizinischen Handreichungen.</p>
+  </div>`
+},
+{
+  id:"eigenschutz", num:"09", title:"Eigenschutz bei der Ersten Hilfe",
+  sub:"Infektionsschutz",
+  body:`
+  <div class="block">
+    <h3>Grundsatz</h3>
+    <p>Eigenschutz geht auch bei der Ersten Hilfe vor – Einmalhandschuhe sind Mindeststandard beim Kontakt mit Blut oder Körperflüssigkeiten.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Gefahrenbeurteilung vor Hilfeleistung</h3>
+    <p>Vor jeder Hilfeleistung wird die unmittelbare Umgebung auf Gefahren geprüft (Verkehr, Strom, Gefahrstoffe) – ein zweites Opfer durch unüberlegtes Handeln muss vermieden werden.</p>
+  </div>`
+},
+{
+  id:"nachsorge", num:"10", title:"Psychische Erste Hilfe / Einsatznachsorge",
+  sub:"Betreuung Betroffener und Kräfte",
+  body:`
+  <div class="block">
+    <h3>Psychische Erste Hilfe für Betroffene</h3>
+    <p>Ruhige, klare Ansprache und Anwesenheit können akut traumatisierten Personen bereits erste Stabilität geben, bis professionelle Hilfe eintrifft.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Nachsorge für Einsatzkräfte</h3>
+    <p>Nach besonders belastenden Einsätzen steht Einsatzkräften häufig ein Einsatznachsorgeteam (Peer-Support) zur Verfügung – frühzeitige Inanspruchnahme wird ausdrücklich empfohlen.</p>
+  </div>`
+}
+];
+
+const QUIZ = [
+{m:"grundlagen",q:"Wofür steht das 'A' im ABCDE-Schema?",o:["Atmung","Airway – Atemwege","Angst","Auffälligkeit"],c:1,e:"'A' steht für Airway, also die Atemwege."},
+{m:"grundlagen",q:"Wofür steht das 'C' im ABCDE-Schema?",o:["Circulation – Kreislauf","Chemikalien","Communication","Cool-Down"],c:0,e:"'C' steht für Circulation, den Kreislauf."},
+{m:"sofortmassnahmen",q:"Wann wird die stabile Seitenlage angewendet?",o:["Bei bewusstloser, normal atmender Person","Bei jeder Verletzung grundsätzlich","Nur bei Kopfverletzungen","Nie in der Ersten Hilfe"],c:0,e:"Die stabile Seitenlage sichert die Atemwege bei erhaltener Atmung."},
+{m:"sofortmassnahmen",q:"In welchem Verhältnis erfolgt die Herz-Lungen-Wiederbelebung?",o:["15:1","30:2","10:5","50:1"],c:1,e:"Das Standardverhältnis ist 30 Herzdruckmassagen zu 2 Beatmungen."},
+{m:"blutungen",q:"Was ist die erste Maßnahme bei starker Blutung?",o:["Abwarten","Direkter Druck auf die Wunde","Die Wunde mit Wasser abspülen","Die Person aufsetzen"],c:1,e:"Direkter Druck ist die erste und wichtigste Sofortmaßnahme."},
+{m:"blutungen",q:"Was passiert mit Fremdkörpern in einer Wunde?",o:["Sie werden sofort entfernt","Sie werden umpolstert und fixiert, nicht entfernt","Sie werden ignoriert","Sie werden weiter hineingedrückt"],c:1,e:"Fremdkörper werden nicht entfernt, sondern fixiert."},
+{m:"schock",q:"Welches Symptom deutet auf einen beginnenden Kreislaufschock hin?",o:["Warme, gerötete Haut","Blasse, kaltschweißige Haut","Verlangsamter, kräftiger Puls","Ruhige Gelassenheit"],c:1,e:"Blässe und Kaltschweißigkeit sind typische Schockzeichen."},
+{m:"schock",q:"Was ist eine typische Erstmaßnahme bei Schock?",o:["Beine hochlagern, sofern keine Kontraindikation vorliegt","Die Person zum Gehen auffordern","Kalte Getränke anbieten","Die Person allein lassen"],c:0,e:"Hochlagern der Beine unterstützt den Kreislauf, wenn keine Gegenanzeige besteht."},
+{m:"trauma_thl",q:"Wie läuft medizinische Versorgung bei eingeklemmten Personen ab?",o:["Erst nach vollständiger technischer Rettung","Parallel zur technischen Rettung","Gar nicht während der Rettung","Nur durch die Feuerwehr allein"],c:1,e:"Medizinische Versorgung erfolgt parallel zur technischen Rettung."},
+{m:"trauma_thl",q:"Was verhindert enge Absprache zwischen Rettung und Versorgung?",o:["Nichts, sie ist nutzlos","Zusätzliche Belastung der verletzten Person","Schnellere Rettung generell","Sie ist nicht notwendig"],c:1,e:"Gute Absprache reduziert unnötige Belastung des Patienten."},
+{m:"verbrennungen",q:"Womit sollten Verbrennungen gekühlt werden?",o:["Eiswürfeln","Handwarmem Wasser","Öl","Gar nicht kühlen"],c:1,e:"Handwarmes statt eiskaltes Wasser verhindert zusätzliche Gewebeschäden."},
+{m:"verbrennungen",q:"Was sollte bei verbrannten Arealen vermieden werden?",o:["Steriles Abdecken","Salben und Hausmittel auftragen","Rettungsdienst rufen","Ruhige Betreuung"],c:1,e:"Salben und Hausmittel können die weitere Behandlung erschweren."},
+{m:"atemwege",q:"Wie werden Atemwege bei Bewusstlosigkeit häufig geöffnet?",o:["Durch Überstrecken des Kopfes und Anheben des Kinns","Durch Drehung auf den Bauch","Durch Aufsetzen der Person","Durch Anheben der Beine"],c:0,e:"Diese Handgriffe öffnen die durch die Zunge verlegten Atemwege."},
+{m:"atemwege",q:"Was wird bei starker Fremdkörperverlegung der Atemwege angewendet?",o:["Nur Zuwarten","Rückenschläge und ggf. Heimlich-Handgriff","Wasser trinken lassen","Die Person hinlegen und ignorieren"],c:1,e:"Rückenschläge und Heimlich-Handgriff sind Standardmaßnahmen."},
+{m:"rettungsdienst_zusammenarbeit",q:"Wie sollte die Übergabe an den Rettungsdienst erfolgen?",o:["Ausführlich mit vielen Nebensächlichkeiten","Knapp und strukturiert mit den wichtigsten Informationen","Gar nicht notwendig","Nur schriftlich später"],c:1,e:"Strukturierte, knappe Übergabe verbessert die Weiterbehandlung."},
+{m:"rettungsdienst_zusammenarbeit",q:"Wobei können Feuerwehrkräfte den Rettungsdienst zusätzlich unterstützen?",o:["Nur bei der Pressearbeit","Bei Transport, technischer Rettung, einfachen Handreichungen","Nur bei der Fahrzeugreinigung","Gar nicht"],c:1,e:"Unterstützung erfolgt je nach Ausbildungsstand in mehreren Bereichen."},
+{m:"eigenschutz",q:"Was ist Mindeststandard beim Kontakt mit Blut oder Körperflüssigkeiten?",o:["Keine besondere Vorsichtsmaßnahme","Einmalhandschuhe","Ein Vollschutzanzug immer","Nur Händewaschen danach"],c:1,e:"Einmalhandschuhe sind der grundlegende Infektionsschutz."},
+{m:"eigenschutz",q:"Was sollte vor jeder Hilfeleistung geprüft werden?",o:["Nichts Besonderes","Die unmittelbare Umgebung auf Gefahren","Nur die Kleidung der Person","Die Tageszeit"],c:1,e:"Gefahrenbeurteilung verhindert ein zweites Opfer."},
+{m:"nachsorge",q:"Was kann akut traumatisierten Personen erste Stabilität geben?",o:["Ignorieren der Situation","Ruhige, klare Ansprache und Anwesenheit","Laute Anweisungen","Alleinlassen der Person"],c:1,e:"Ruhige Präsenz wirkt stabilisierend bis professionelle Hilfe eintrifft."},
+{m:"nachsorge",q:"Was steht Einsatzkräften nach belastenden Einsätzen häufig zur Verfügung?",o:["Nichts Besonderes","Ein Einsatznachsorgeteam (Peer-Support)","Nur zusätzlicher Urlaub","Eine automatische Versetzung"],c:1,e:"Peer-Support-Teams bieten Nachsorge nach belastenden Einsätzen an."},
+{m:"grundlagen",q:"Ist Erste Hilfe zu leisten eine rechtliche Pflicht?",o:["Nein, komplett freiwillig","Ja, gesetzlich verankerte Pflicht","Nur für Ärzte verpflichtend","Nur im Ausland verpflichtend"],c:1,e:"Erste Hilfe zu leisten ist gesetzlich vorgeschrieben."},
+{m:"sofortmassnahmen",q:"Was ist die ungefähre Frequenz der Herzdruckmassage?",o:["30-40/min","100-120/min","200-250/min","10-20/min"],c:1,e:"Die empfohlene Frequenz liegt bei 100-120 Kompressionen pro Minute."},
+{m:"blutungen",q:"Wann kommt ein Abbindesystem (Tourniquet) als letztes Mittel infrage?",o:["Bei jeder kleinen Schürfwunde","Bei lebensbedrohlicher Extremitätenblutung","Nur bei Kopfverletzungen","Nie in der Ersten Hilfe"],c:1,e:"Tourniquets sind für lebensbedrohliche Extremitätenblutungen reserviert."},
+{m:"verbrennungen",q:"Wann sollte Kleidung bei Verbrennungen NICHT entfernt werden?",o:["Wenn sie mit der Haut verklebt ist","Immer sofort entfernen","Nur bei kaltem Wetter","Kleidung spielt keine Rolle"],c:0,e:"Verklebte Kleidung wird nicht gewaltsam entfernt."},
+{m:"sofortmassnahmen",q:"Nach wie vielen Minuten ohne Kreislauf setzen typisch irreversible Hirnschäden ein?",o:["Sofort","Ca. 3-5 Minuten","Ca. 30 Minuten","Erst nach mehreren Stunden"],c:1,e:"Bereits nach 3-5 Minuten ohne Kreislauf drohen irreversible Hirnschäden."},
+{m:"sofortmassnahmen",q:"Welchen Anteil des normalen Herzzeitvolumens erreicht eine korrekt ausgeführte Herzdruckmassage ungefähr?",o:["Nahezu 100 %","Etwa 20-30 %","Weniger als 1 %","Es wird kein Kreislauf erzeugt"],c:1,e:"Die Herzdruckmassage erzeugt ca. 20-30% des normalen Herzzeitvolumens."},
+{m:"sofortmassnahmen",q:"Um wie viel sinkt die Überlebenschance ohne Reanimation ungefähr pro Minute?",o:["Ca. 1 %","Ca. 10 %","Ca. 50 %","Sie sinkt nicht"],c:1,e:"Die Überlebenschance sinkt ohne Maßnahmen um ca. 10% pro Minute."}
+];
+
+const STORAGE_KEY = "erste_hilfe_lernapp_v1";
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"done":{}}');
+let currentModuleId = null;
+let quizQueue = [], quizIndex = 0, quizScore = 0, quizAnswered = false, quizFilterModule = "all";
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function updateHero(){
+  const total = MODULES.length;
+  const doneCount = MODULES.filter(m => state.done[m.id]).length;
+  const pct = Math.round((doneCount/total)*100);
+  const circumference = 213.6;
+  const offset = circumference - (circumference * pct/100);
+  document.getElementById("gaugeFill").style.strokeDashoffset = offset;
+  document.getElementById("gaugePct").textContent = pct + "%";
+  document.getElementById("heroSub").textContent = `Ausbildungsstand · ${doneCount} von ${total} Modulen abgeschlossen`;
+}
+function renderModGrid(){
+  const grid = document.getElementById("modGrid");
+  grid.innerHTML = MODULES.map(m => `
+    <div class="mod-card" onclick="openModule('${m.id}')">
+      <div class="mod-num">${m.num}</div>
+      <div class="mod-info"><div class="mtitle">${m.title}</div><div class="msub">${m.sub}</div></div>
+      <div class="mod-check ${state.done[m.id] ? 'done' : ''}"></div>
+    </div>`).join("");
+}
+function openModule(id){
+  const m = MODULES.find(x => x.id === id);
+  currentModuleId = id;
+  document.getElementById("detailNum").textContent = "Modul " + m.num;
+  document.getElementById("detailTitle").textContent = m.title;
+  document.getElementById("detailSub").textContent = m.sub;
+  document.getElementById("detailBody").innerHTML = m.body;
+  const btn = document.getElementById("markDoneBtn");
+  btn.textContent = state.done[id] ? "✓ Durchgearbeitet" : "Als durchgearbeitet markieren";
+  btn.className = "mark-done-btn" + (state.done[id] ? " is-done" : "");
+  showView("detail");
+}
+document.getElementById("markDoneBtn").addEventListener("click", () => {
+  if(!currentModuleId) return;
+  state.done[currentModuleId] = !state.done[currentModuleId];
+  saveState(); openModule(currentModuleId); updateHero(); renderModGrid();
+});
+function showView(name){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + name).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+  document.querySelectorAll(".bn-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+}
+document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.view)));
+function renderQuizFilter(){
+  const wrap = document.getElementById("quizFilter");
+  const chips = [{id:"all", label:"Alle Module"}].concat(MODULES.map(m => ({id:m.id, label:m.title})));
+  wrap.innerHTML = chips.map(c => `<button class="qf-chip ${quizFilterModule===c.id?'active':''}" data-id="${c.id}">${c.label}</button>`).join("");
+  wrap.querySelectorAll(".qf-chip").forEach(chip => chip.addEventListener("click", () => { quizFilterModule = chip.dataset.id; renderQuizFilter(); }));
+}
+function startQuiz(){
+  let pool = quizFilterModule === "all" ? QUIZ.slice() : QUIZ.filter(q => q.m === quizFilterModule);
+  pool = pool.sort(() => Math.random() - 0.5);
+  quizQueue = pool; quizIndex = 0; quizScore = 0;
+  document.getElementById("quizIntro").style.display = "none";
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizRunning").style.display = "block";
+  renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  quizAnswered = false;
+  const q = quizQueue[quizIndex];
+  const modTitle = MODULES.find(m => m.id === q.m).title;
+  const box = document.getElementById("quizRunning");
+  box.innerHTML = `
+    <div class="quiz-progress"><span>Frage ${quizIndex+1} / ${quizQueue.length}</span><span>${modTitle}</span></div>
+    <div class="q-card">
+      <div class="q-text">${q.q}</div>
+      <div id="qOpts">${q.o.map((opt,i) => `<button class="q-opt" data-i="${i}">${opt}</button>`).join("")}</div>
+      <div id="qExplainWrap"></div>
+    </div>`;
+  box.querySelectorAll(".q-opt").forEach(btn => btn.addEventListener("click", () => selectAnswer(parseInt(btn.dataset.i))));
+}
+function selectAnswer(i){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQueue[quizIndex];
+  const opts = document.querySelectorAll(".q-opt");
+  opts.forEach((btn, idx) => {
+    if(idx === q.c) btn.classList.add("correct");
+    else if(idx === i) btn.classList.add("wrong");
+    btn.style.pointerEvents = "none";
+  });
+  if(i === q.c) quizScore++;
+  document.getElementById("qExplainWrap").innerHTML = `
+    <div class="q-explain">${q.e}</div>
+    <button class="q-next-btn" onclick="nextQuizQuestion()">${quizIndex < quizQueue.length-1 ? 'Nächste Frage' : 'Ergebnis anzeigen'}</button>`;
+}
+function nextQuizQuestion(){
+  quizIndex++;
+  if(quizIndex >= quizQueue.length){ showQuizResult(); } else { renderQuizQuestion(); }
+}
+function showQuizResult(){
+  document.getElementById("quizRunning").style.display = "none";
+  const doneBox = document.getElementById("quizDone");
+  doneBox.style.display = "block";
+  const pct = Math.round((quizScore/quizQueue.length)*100);
+  doneBox.innerHTML = `
+    <div class="quiz-result"><div class="score">${quizScore}/${quizQueue.length}</div><div class="score-label">${pct}% richtig beantwortet</div></div>
+    <button class="quiz-start-btn" onclick="resetQuizView()">Neue Prüfung</button>`;
+}
+function resetQuizView(){
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizIntro").style.display = "block";
+}
+renderModGrid(); renderQuizFilter(); updateHero();
+</script>
+</body>
+</html>

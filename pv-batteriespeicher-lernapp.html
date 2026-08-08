@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PV & Batteriespeicher · Lernapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C0E; --bg-elevated:#14181B; --bg-card:#181C1F;
+  --line:#262B2F; --line-soft:#1D2124;
+  --text:#E8E6E1; --text-dim:#8A9199; --text-faint:#565D63;
+  --accent:#8B5FD9; --accent-dim:#432A6E;
+  --amber:#E8A33D; --teal:#3FA79A; --teal-dim:#245852; --red:#C1361B;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+body{padding-bottom:70px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);}
+h1,h2,h3{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em;}
+header.hero{padding:22px 18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101316,var(--bg));}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.hero-title h1{font-size:26px;color:var(--text);}
+.hero-title .eyebrow{margin-bottom:4px;}
+.gauge-wrap{position:relative;width:74px;height:74px;flex-shrink:0;}
+.gauge-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:var(--line);stroke-width:7;}
+.gauge-fill{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .6s ease;}
+.gauge-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);}
+.hero-sub{margin-top:10px;font-size:12.5px;color:var(--text-dim);}
+nav.tabs{display:flex;overflow-x:auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg-elevated);position:sticky;top:0;z-index:20;scrollbar-width:none;}
+nav.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.03em;padding:8px 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);white-space:nowrap;cursor:pointer;}
+.tab-btn.active{background:var(--accent);color:#150A21;border-color:var(--accent);font-weight:600;}
+main{padding:16px 14px 30px;max-width:640px;margin:0 auto;}
+.view{display:none;}
+.view.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.mod-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.mod-card{display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;cursor:pointer;}
+.mod-card:active{border-color:var(--accent-dim);}
+.mod-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);width:22px;flex-shrink:0;}
+.mod-info{flex:1;min-width:0;}
+.mod-info .mtitle{font-family:'Oswald',sans-serif;font-size:15px;font-weight:500;color:var(--text);}
+.mod-info .msub{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.mod-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.mod-check.done{background:var(--teal);border-color:var(--teal);}
+.mod-check.done::after{content:'✓';font-size:11px;color:#04211D;font-weight:700;}
+.mod-header{margin-bottom:14px;}
+.back-btn{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0 0 10px;display:flex;align-items:center;gap:4px;}
+.mod-header h2{font-size:22px;margin-bottom:4px;}
+.mod-header .msub{font-size:12.5px;color:var(--text-dim);}
+.block{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;margin-bottom:10px;}
+.block h3{font-size:14px;color:var(--accent);margin-bottom:8px;letter-spacing:.02em;}
+.block h3.teal{color:var(--teal);}
+.block h3.red{color:var(--red);}
+.block h3.amber{color:var(--amber);}
+.block p{font-size:13.5px;line-height:1.55;color:var(--text);margin-bottom:6px;}
+.block ul{padding-left:18px;margin:4px 0;}
+.block li{font-size:13.5px;line-height:1.6;color:var(--text);margin-bottom:4px;}
+.block li b{color:var(--text);font-weight:600;}
+.block .note{font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic;}
+.warn-box{border-left:3px solid var(--red);background:rgba(193,54,27,.08);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:8px;}
+.warn-box p{font-size:12.5px;color:#E8B9AC;margin:0;}
+.warn-box .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:4px;}
+.figure{background:#0E1114;border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0;text-align:center;}
+.figure svg{max-width:100%;height:auto;}
+.figure-caption{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);margin-top:8px;letter-spacing:.02em;}
+.calc-box{background:#0E1114;border:1px solid var(--accent-dim);border-radius:8px;padding:12px 14px;margin:10px 0;}
+.calc-box .calc-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:6px;}
+.calc-box .calc-formula{font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:var(--text);line-height:1.7;}
+.calc-box .calc-result{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--accent);font-weight:600;margin-top:6px;}
+.mark-done-btn{width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--teal-dim);background:transparent;color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:.04em;cursor:pointer;margin-top:6px;}
+.mark-done-btn.is-done{background:var(--teal);color:#04211D;border-color:var(--teal);}
+.quiz-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.qf-chip{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:6px 10px;border-radius:14px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);cursor:pointer;}
+.qf-chip.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal-dim);}
+.quiz-start-btn{width:100%;padding:15px;background:var(--accent);color:#150A21;border:none;border-radius:var(--radius);font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+.quiz-progress{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:8px;display:flex;justify-content:space-between;}
+.q-card{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+.q-text{font-size:15px;line-height:1.5;margin-bottom:14px;color:var(--text);font-family:'Oswald',sans-serif;font-weight:400;}
+.q-opt{display:block;width:100%;text-align:left;padding:12px 13px;margin-bottom:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg-elevated);color:var(--text);font-size:13.5px;cursor:pointer;}
+.q-opt.correct{border-color:var(--teal);background:rgba(63,167,154,.12);color:var(--teal);}
+.q-opt.wrong{border-color:var(--red);background:rgba(193,54,27,.12);color:#E8998A;}
+.q-explain{font-size:12.5px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);line-height:1.5;}
+.q-next-btn{width:100%;padding:13px;margin-top:14px;background:var(--teal);color:#04211D;border:none;border-radius:8px;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+.quiz-result{text-align:center;padding:30px 16px;}
+.quiz-result .score{font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--accent);font-weight:600;}
+.quiz-result .score-label{font-size:12px;color:var(--text-dim);margin-top:4px;}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg-elevated);border-top:1px solid var(--line);z-index:30;}
+.bn-btn{flex:1;padding:10px 4px 12px;text-align:center;background:none;border:none;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.02em;cursor:pointer;}
+.bn-btn.active{color:var(--accent);}
+.bn-icon{display:block;font-size:18px;margin-bottom:3px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-top">
+    <div class="hero-title">
+      <div class="eyebrow">Brände von Photovoltaik- und Speicheranlagen · Lehrmeinung Bayern / AGBF</div>
+      <h1>PV & Batteriespeicher</h1>
+    </div>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 80 80">
+        <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>
+        <circle id="gaugeFill" class="gauge-fill" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+      </svg>
+      <div class="gauge-pct" id="gaugePct">0%</div>
+    </div>
+  </div>
+  <div class="hero-sub" id="heroSub">Ausbildungsstand · 0 von 10 Modulen abgeschlossen</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="uebersicht">Module</button>
+  <button class="tab-btn" data-view="spickzettel">Spickzettel</button>
+  <button class="tab-btn" data-view="quiz">Prüfung</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-uebersicht">
+    <div class="mod-grid" id="modGrid"></div>
+  </section>
+
+  <section class="view" id="view-detail">
+    <button class="back-btn" onclick="showView('uebersicht')">← Alle Module</button>
+    <div class="mod-header">
+      <div class="eyebrow" id="detailNum"></div>
+      <h2 id="detailTitle"></h2>
+      <div class="msub" id="detailSub"></div>
+    </div>
+    <div id="detailBody"></div>
+    <button class="mark-done-btn" id="markDoneBtn">Als durchgearbeitet markieren</button>
+  </section>
+
+  <section class="view" id="view-spickzettel">
+    <div class="block">
+      <h3>Grundgefahren PV/Batteriespeicher</h3>
+      <ul>
+        <li><b>Lichtbogengefahr:</b> Gleichstrom lässt sich schwerer unterbrechen als Wechselstrom</li>
+        <li><b>Spannungsführung auch bei Tageslicht:</b> PV-Module erzeugen Strom, solange Licht einfällt – auch bei beschädigten Modulen</li>
+        <li><b>Thermal Runaway:</b> selbstverstärkende Kettenreaktion in Lithium-Ionen-Zellen</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3 class="teal">Sicherheitsabstände (Richtwerte)</h3>
+      <p>Bei unbekanntem Spannungszustand großzügigen Abstand zu PV-Modulen und Speichern einhalten, C-Strahlrohr im Sprühstrahl aus sicherer Distanz bevorzugen, keine direkten Vollstrahl-Kontakte mit stromführenden Teilen.</p>
+    </div>
+    <div class="block">
+      <h3 class="amber">Löschtaktik</h3>
+      <ul>
+        <li>PV: von außen kühlen, Modul-String wenn möglich vom Dach ganzheitlich betrachten statt Einzelmodule zu isolieren</li>
+        <li>Batteriespeicher: großzügige Wasserkühlung, kontrolliertes Abbrennen in Kauf nehmen, Rückzündungsgefahr über Stunden/Tage beachten</li>
+      </ul>
+    </div>
+</section>
+
+  <section class="view" id="view-quiz">
+    <div id="quizIntro">
+      <div class="block">
+        <h3>Prüfungsmodus</h3>
+        <p>Fragen zu allen Modulen. Auswahl nach Themenbereich möglich.</p>
+      </div>
+      <div class="quiz-filter" id="quizFilter"></div>
+      <button class="quiz-start-btn" onclick="startQuiz()">Prüfung starten</button>
+    </div>
+    <div id="quizRunning" style="display:none;"></div>
+    <div id="quizDone" style="display:none;"></div>
+  </section>
+</main>
+
+<nav class="bottomnav">
+  <button class="bn-btn active" data-view="uebersicht" onclick="showView('uebersicht')"><span class="bn-icon">▤</span>Module</button>
+  <button class="bn-btn" data-view="spickzettel" onclick="showView('spickzettel')"><span class="bn-icon">◈</span>Spickzettel</button>
+  <button class="bn-btn" data-view="quiz" onclick="showView('quiz')"><span class="bn-icon">◉</span>Prüfung</button>
+</nav>
+
+<script>
+const MODULES = [
+{
+  id:"pv_grundlagen", num:"01", title:"Grundlagen PV-Anlagen",
+  sub:"Aufbau · Gleichstromseite",
+  body:`
+  <div class="block">
+    <h3>Aufbau</h3>
+    <p>Photovoltaikanlagen bestehen aus Solarmodulen (Gleichstromseite), Wechselrichter (wandelt in Wechselstrom um) und der Einspeisung ins Hausnetz.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Besonderheit Gleichstromseite</h3>
+    <p>Solange Licht auf die Module fällt, erzeugen sie Spannung – auch bei beschädigten oder teilweise zerstörten Modulen kann die Gleichstromseite weiterhin unter Spannung stehen.</p>
+  </div>`
+},
+{
+  id:"pv_gefahren", num:"02", title:"Gefahren bei PV-Bränden",
+  sub:"Lichtbogen · Stromschlag",
+  body:`
+  <div class="block">
+    <h3 class="red">Lichtbogengefahr</h3>
+    <p>Gleichstrom-Lichtbögen sind schwerer zu löschen als Wechselstrom-Lichtbögen und können bei beschädigter Verkabelung länger bestehen bleiben.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Stromschlaggefahr</h3>
+    <p>Beschädigte Module und Leitungen können auch nach dem eigentlichen Brandereignis noch spannungsführend sein – besondere Vorsicht bei Nachlöscharbeiten und Aufräumarbeiten.</p>
+  </div>`
+},
+{
+  id:"pv_loeschtaktik", num:"03", title:"Löschtaktik PV",
+  sub:"Abstand · Löschmittel",
+  body:`
+  <div class="block">
+    <h3>Sicherheitsabstand</h3>
+    <p>Bei unbekanntem Spannungszustand großzügigen Abstand einhalten, Sprühstrahl statt Vollstrahl bevorzugen, um direkten Kontakt mit stromführenden Teilen zu vermeiden.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Vorgehen</h3>
+    <p>Löschwasser wird primär zur Kühlung der Umgebung und angrenzender Bauteile eingesetzt – ein vollständiges Löschen der brennenden Module ist oft schwierig und nicht immer zwingend notwendig.</p>
+  </div>`
+},
+{
+  id:"batteriespeicher", num:"04", title:"Batteriespeicher Grundlagen",
+  sub:"Lithium-Ionen-Technik",
+  body:`
+  <div class="block">
+    <h3>Funktionsprinzip</h3>
+    <p>Lithium-Ionen-Batteriespeicher speichern elektrische Energie chemisch – bei Beschädigung, Überladung oder Fertigungsfehlern kann es zu unkontrollierten chemischen Reaktionen kommen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Verbreitung</h3>
+    <p>Heimspeicher sind zunehmend in Wohngebäuden verbaut, oft in Kellern oder Garagen – relevantes und wachsendes Einsatzszenario für die Feuerwehr.</p>
+  </div>`
+},
+{
+  id:"thermal_runaway", num:"05", title:"Thermal Runaway",
+  sub:"Kettenreaktion",
+  body:`
+  <div class="block">
+    <h3 class="red">Selbstverstärkender Prozess</h3>
+    <p>Beim Thermal Runaway erhitzt sich eine beschädigte Zelle selbst weiter, was benachbarte Zellen mit anstecken kann – eine Kettenreaktion, die schwer zu stoppen ist und brennbare, teils toxische Gase freisetzt.</p>
+  </div>
+  <div class="block">
+    <h3 class="amber">Elektrochemischer Hintergrund</h3>
+    <p>In einer Lithium-Ionen-Zelle sind Anode, Kathode und ein brennbarer, organischer Elektrolyt auf engstem Raum durch einen dünnen Separator getrennt. Wird dieser Separator durch mechanische Beschädigung, interne Kurzschlüsse oder Überladung durchlässig, kommt es zu einem internen Kurzschluss: Die freiwerdende elektrische Energie wird schlagartig in Wärme umgesetzt. Ab einer kritischen Temperatur (materialabhängig oft ab ca. 150–200 °C) beginnt der Elektrolyt sich exotherm zu zersetzen – diese Zersetzungsreaktion liefert selbst weitere Wärme, wodurch sich der Prozess selbst beschleunigt (positive Rückkopplung) und auf Nachbarzellen übergreifen kann, bis hin zur vollständigen Durchzündung des gesamten Speichers.</p>
+  </div>
+  <div class="calc-box">
+    <span class="calc-label">Selbstverstärkender Kreislauf (positive Rückkopplung)</span>
+    <div class="calc-formula">Wärme → beschleunigte Zersetzung → mehr Wärme → noch schnellere Zersetzung</div>
+    <div class="calc-result">Ohne ausreichende externe Kühlung ist dieser Kreislauf kaum zu unterbrechen</div>
+  </div>
+  <div class="block">
+    <h3 class="teal">Erkennungsmerkmale</h3>
+    <p>Ausgasung, ungewöhnliche Gerüche, Aufblähen des Gehäuses oder Zischgeräusche können Vorboten eines beginnenden Thermal Runaway sein.</p>
+  </div>`
+},
+{
+  id:"batterie_loeschtaktik", num:"06", title:"Löschtaktik Batteriespeicher",
+  sub:"Kühlung · kontrolliertes Abbrennen",
+  body:`
+  <div class="block">
+    <h3>Großzügige Kühlung</h3>
+    <p>Große Mengen Wasser zur Kühlung sind meist die wirksamste Maßnahme, um die Kettenreaktion zu verlangsamen – ein vollständiges Löschen ist oft schwer erreichbar.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Kontrolliertes Abbrennen</h3>
+    <p>In bestimmten Fällen kann kontrolliertes Abbrennenlassen unter Beobachtung und mit Absicherung der Umgebung die sicherste Strategie sein, statt aktiv unter hohem Risiko einzugreifen.</p>
+  </div>`
+},
+{
+  id:"freischaltung", num:"07", title:"Freischaltung & Abschaltung",
+  sub:"PV-Anlagen sichern",
+  body:`
+  <div class="block">
+    <h3>Abschaltmöglichkeiten</h3>
+    <p>Wechselrichter können meist ausgeschaltet werden, die Gleichstromseite bleibt jedoch bei Lichteinfall weiterhin spannungsführend – vollständige Spannungsfreiheit ist oft nicht ohne Weiteres herstellbar.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Feuerwehrschalter</h3>
+    <p>Manche Anlagen verfügen über einen Feuerwehrschalter zur schnellen Trennung – dessen Vorhandensein und Lage sollte, wenn möglich, vorab bekannt sein (z. B. über Feuerwehrplan).</p>
+  </div>`
+},
+{
+  id:"gefahrenbereich", num:"08", title:"Gefahrenbereich & Absperrung",
+  sub:"Sicherheitsabstände",
+  body:`
+  <div class="block">
+    <h3>Absperrung</h3>
+    <p>Der Bereich um brennende PV-Anlagen oder Batteriespeicher wird großzügig abgesperrt – sowohl wegen elektrischer Gefahren als auch wegen möglicher toxischer Ausgasungen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Windrichtung beachten</h3>
+    <p>Bei Batteriespeicherbränden können gefährliche Gase entstehen – Anfahrt und Aufstellung möglichst aus Luv, analog zu ABC-Einsätzen.</p>
+  </div>`
+},
+{
+  id:"nachloescharbeiten", num:"09", title:"Nachlöscharbeiten & Rückzündungsgefahr",
+  sub:"Langzeitüberwachung",
+  body:`
+  <div class="block">
+    <h3 class="red">Rückzündungsgefahr</h3>
+    <p>Batteriespeicher können auch Stunden oder Tage nach dem vermeintlichen Löscherfolg erneut aufflammen – eine Nachüberwachung über einen längeren Zeitraum ist erforderlich.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Praktisches Vorgehen</h3>
+    <p>Betroffene Batterien werden nach Möglichkeit in Wasserbecken oder speziellen Containern gelagert, um eine weitere Reaktion sicher zu kontrollieren.</p>
+  </div>`
+},
+{
+  id:"fachpersonal", num:"10", title:"Zusammenarbeit mit Fachpersonal",
+  sub:"Elektrofachkraft",
+  body:`
+  <div class="block">
+    <h3>Einbindung von Fachpersonal</h3>
+    <p>Bei größeren oder unklaren Anlagenlagen wird eine Elektrofachkraft oder der Anlagenbetreiber hinzugezogen, um die Anlage sachgerecht freizuschalten und Restrisiken einzuschätzen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Dokumentation für spätere Einsätze</h3>
+    <p>Erkenntnisse zu Anlagentyp und Lage der Abschaltvorrichtungen können in den Feuerwehrplan des Objekts einfließen und künftige Einsätze erleichtern.</p>
+  </div>`
+}
+];
+
+const QUIZ = [
+{m:"pv_grundlagen",q:"Woraus besteht eine typische PV-Anlage grundlegend?",o:["Nur aus Solarmodulen","Solarmodule, Wechselrichter und Netzeinspeisung","Nur aus einer Batterie","Nur aus Verkabelung ohne weitere Komponenten"],c:1,e:"Module, Wechselrichter und Einspeisung bilden die Grundstruktur."},
+{m:"pv_grundlagen",q:"Warum kann die Gleichstromseite auch bei beschädigten Modulen gefährlich bleiben?",o:["Sie ist nie gefährlich","Module erzeugen bei Lichteinfall weiterhin Spannung","Beschädigte Module sind automatisch spannungsfrei","Nur bei Nacht relevant"],c:1,e:"Solange Licht einfällt, erzeugen Module Spannung."},
+{m:"pv_gefahren",q:"Warum sind Gleichstrom-Lichtbögen besonders gefährlich?",o:["Sie sind ungefährlicher als Wechselstrom-Lichtbögen","Sie sind schwerer zu löschen und können länger bestehen","Sie treten nie bei PV-Anlagen auf","Sie sind nur optisch auffällig"],c:1,e:"Gleichstrom-Lichtbögen sind schwerer zu unterbrechen."},
+{m:"pv_gefahren",q:"Was ist bei Nachlöscharbeiten an PV-Anlagen zu beachten?",o:["Keine besondere Vorsicht notwendig","Module können weiterhin spannungsführend sein","Die Gefahr endet automatisch mit dem Löscherfolg","Nur bei Regen relevant"],c:1,e:"Auch nach dem Brand können Teile spannungsführend bleiben."},
+{m:"pv_loeschtaktik",q:"Welche Strahlform wird bei PV-Bränden bevorzugt?",o:["Vollstrahl direkt auf die Module","Sprühstrahl aus sicherem Abstand","Kein Wasser einsetzen","Nur Schaum verwenden"],c:1,e:"Sprühstrahl reduziert das Risiko direkten Kontakts mit Strom."},
+{m:"pv_loeschtaktik",q:"Wofür wird Löschwasser bei PV-Bränden primär eingesetzt?",o:["Nur zur Dekoration","Zur Kühlung der Umgebung und angrenzender Bauteile","Es wird nie eingesetzt","Nur zur Rauchentwicklung"],c:1,e:"Kühlung der Umgebung ist die primäre Löschwasser-Funktion."},
+{m:"batteriespeicher",q:"Wie speichern Lithium-Ionen-Batteriespeicher Energie?",o:["Mechanisch","Chemisch","Thermisch ohne Chemie","Sie speichern keine Energie"],c:1,e:"Die Speicherung erfolgt über chemische Prozesse in den Zellen."},
+{m:"batteriespeicher",q:"Wo sind Heimspeicher häufig verbaut?",o:["Nur im Garten frei stehend","Oft in Kellern oder Garagen","Nur auf dem Dach","Nie in Wohngebäuden"],c:1,e:"Keller und Garagen sind typische Einbauorte für Heimspeicher."},
+{m:"thermal_runaway",q:"Was passiert beim Thermal Runaway?",o:["Die Zelle kühlt sich selbst ab","Eine beschädigte Zelle erhitzt sich selbstverstärkend und kann Nachbarzellen anstecken","Nichts Besonderes","Die Batterie schaltet sich sicher ab"],c:1,e:"Thermal Runaway ist eine gefährliche Kettenreaktion."},
+{m:"thermal_runaway",q:"Welches Anzeichen kann auf einen beginnenden Thermal Runaway hindeuten?",o:["Kühleres Gehäuse","Ausgasung und Aufblähen des Gehäuses","Lautere Musik im Haus","Helleres Licht"],c:1,e:"Ausgasung und Gehäuseverformung sind Warnzeichen."},
+{m:"batterie_loeschtaktik",q:"Was ist meist die wirksamste Maßnahme bei brennenden Batteriespeichern?",o:["Kein Wasser einsetzen","Großzügige Kühlung mit Wasser","Nur Schaum verwenden","Sofortiges Verlassen ohne Maßnahme"],c:1,e:"Großzügige Wasserkühlung verlangsamt die Kettenreaktion."},
+{m:"batterie_loeschtaktik",q:"Was kann bei bestimmten Lagen die sicherste Strategie sein?",o:["Sofortiges Löschen um jeden Preis","Kontrolliertes Abbrennenlassen unter Beobachtung","Die Feuerwehr sollte nie eingreifen","Wasser komplett vermeiden"],c:1,e:"Kontrolliertes Abbrennen kann sicherer sein als aktives Eingreifen unter hohem Risiko."},
+{m:"freischaltung",q:"Was bleibt bei PV-Anlagen auch nach Ausschalten des Wechselrichters oft bestehen?",o:["Keine Spannung mehr vorhanden","Spannung auf der Gleichstromseite bei Lichteinfall","Nur die Netzspannung","Nichts Relevantes"],c:1,e:"Die Gleichstromseite bleibt bei Licht weiterhin spannungsführend."},
+{m:"freischaltung",q:"Wozu dient ein Feuerwehrschalter an PV-Anlagen?",o:["Zur Beleuchtung","Zur schnellen Trennung der Anlage im Notfall","Zur Alarmierung der Feuerwehr","Er hat keine besondere Funktion"],c:1,e:"Der Feuerwehrschalter ermöglicht schnelle Trennung im Einsatzfall."},
+{m:"gefahrenbereich",q:"Warum wird der Bereich um brennende Batteriespeicher großzügig abgesperrt?",o:["Aus optischen Gründen","Wegen elektrischer Gefahren und möglicher toxischer Ausgasungen","Nur zur Verkehrsregelung","Es ist nicht notwendig"],c:1,e:"Elektrische und chemische Gefahren erfordern großzügige Absperrung."},
+{m:"gefahrenbereich",q:"Aus welcher Richtung sollte bei Batteriespeicherbränden angefahren werden?",o:["Aus Lee","Aus Luv","Richtung spielt keine Rolle","Nur von Norden"],c:1,e:"Anfahrt aus Luv minimiert die Gefährdung durch Gase, analog zu ABC-Einsätzen."},
+{m:"nachloescharbeiten",q:"Wie lange kann die Rückzündungsgefahr bei Batteriespeichern bestehen?",o:["Nur wenige Sekunden","Stunden bis Tage nach dem vermeintlichen Löscherfolg","Sie besteht nie","Nur während des akuten Brandes"],c:1,e:"Rückzündung ist auch Stunden bis Tage später möglich."},
+{m:"nachloescharbeiten",q:"Wie werden betroffene Batterien nach dem Einsatz oft gelagert?",o:["Ohne besondere Vorkehrungen im Freien","In Wasserbecken oder speziellen Containern","Sofort im Hausmüll entsorgt","Es gibt keine besondere Vorgabe"],c:1,e:"Kontrollierte Lagerung verhindert unkontrollierte Nachreaktionen."},
+{m:"fachpersonal",q:"Wer wird bei unklaren Anlagenlagen häufig hinzugezogen?",o:["Nur die Presse","Eine Elektrofachkraft oder der Anlagenbetreiber","Nur die Polizei","Niemand zusätzlich"],c:1,e:"Elektrofachkräfte unterstützen bei der sachgerechten Freischaltung."},
+{m:"fachpersonal",q:"Wozu können Erkenntnisse zu Anlagentyp und Abschaltvorrichtungen genutzt werden?",o:["Für nichts Bestimmtes","Für den Feuerwehrplan des Objekts","Nur zur privaten Notiz","Sie werden nie dokumentiert"],c:1,e:"Diese Informationen erleichtern künftige Einsätze am selben Objekt."},
+{m:"pv_grundlagen",q:"Was wandelt der Wechselrichter einer PV-Anlage um?",o:["Wechselstrom in Gleichstrom","Gleichstrom in Wechselstrom","Wasser in Dampf","Licht in Wärme"],c:1,e:"Der Wechselrichter wandelt den erzeugten Gleichstrom in Wechselstrom um."},
+{m:"batteriespeicher",q:"Was kann Beschädigung, Überladung oder Fertigungsfehler bei Batteriezellen auslösen?",o:["Keine besonderen Folgen","Unkontrollierte chemische Reaktionen","Automatische Selbstreparatur","Erhöhte Kapazität"],c:1,e:"Solche Faktoren können gefährliche Reaktionen in Gang setzen."},
+{m:"thermal_runaway",q:"Welche Art von Gasen kann beim Thermal Runaway freigesetzt werden?",o:["Nur Wasserdampf","Brennbare, teils toxische Gase","Nur Sauerstoff","Keine Gase werden freigesetzt"],c:1,e:"Die Kettenreaktion setzt gefährliche Gase frei."},
+{m:"thermal_runaway",q:"Was trennt Anode und Kathode in einer Lithium-Ionen-Zelle?",o:["Nichts, sie berühren sich direkt","Ein dünner Separator","Eine Betonwand","Ein Vakuum"],c:1,e:"Der Separator trennt die Elektroden und verhindert im Normalbetrieb einen Kurzschluss."},
+{m:"thermal_runaway",q:"Ab welcher ungefähren Temperatur beginnt sich der Elektrolyt häufig exotherm zu zersetzen?",o:["Ca. 20-30 °C","Ca. 150-200 °C","Ca. 1000 °C","Erst bei über 5000 °C"],c:1,e:"Ab ca. 150-200°C beginnt häufig die exotherme Zersetzung des Elektrolyten."},
+{m:"thermal_runaway",q:"Was beschreibt die 'positive Rückkopplung' beim Thermal Runaway?",o:["Ein Sicherheitsmechanismus, der die Reaktion stoppt","Wärme beschleunigt die Zersetzung, die wiederum mehr Wärme erzeugt","Eine Abkühlung der Zelle","Ein normaler, ungefährlicher Vorgang"],c:1,e:"Die selbstverstärkende Rückkopplung macht den Prozess so schwer zu stoppen."}
+];
+
+const STORAGE_KEY = "pv_batteriespeicher_lernapp_v1";
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"done":{}}');
+let currentModuleId = null;
+let quizQueue = [], quizIndex = 0, quizScore = 0, quizAnswered = false, quizFilterModule = "all";
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function updateHero(){
+  const total = MODULES.length;
+  const doneCount = MODULES.filter(m => state.done[m.id]).length;
+  const pct = Math.round((doneCount/total)*100);
+  const circumference = 213.6;
+  const offset = circumference - (circumference * pct/100);
+  document.getElementById("gaugeFill").style.strokeDashoffset = offset;
+  document.getElementById("gaugePct").textContent = pct + "%";
+  document.getElementById("heroSub").textContent = `Ausbildungsstand · ${doneCount} von ${total} Modulen abgeschlossen`;
+}
+function renderModGrid(){
+  const grid = document.getElementById("modGrid");
+  grid.innerHTML = MODULES.map(m => `
+    <div class="mod-card" onclick="openModule('${m.id}')">
+      <div class="mod-num">${m.num}</div>
+      <div class="mod-info"><div class="mtitle">${m.title}</div><div class="msub">${m.sub}</div></div>
+      <div class="mod-check ${state.done[m.id] ? 'done' : ''}"></div>
+    </div>`).join("");
+}
+function openModule(id){
+  const m = MODULES.find(x => x.id === id);
+  currentModuleId = id;
+  document.getElementById("detailNum").textContent = "Modul " + m.num;
+  document.getElementById("detailTitle").textContent = m.title;
+  document.getElementById("detailSub").textContent = m.sub;
+  document.getElementById("detailBody").innerHTML = m.body;
+  const btn = document.getElementById("markDoneBtn");
+  btn.textContent = state.done[id] ? "✓ Durchgearbeitet" : "Als durchgearbeitet markieren";
+  btn.className = "mark-done-btn" + (state.done[id] ? " is-done" : "");
+  showView("detail");
+}
+document.getElementById("markDoneBtn").addEventListener("click", () => {
+  if(!currentModuleId) return;
+  state.done[currentModuleId] = !state.done[currentModuleId];
+  saveState(); openModule(currentModuleId); updateHero(); renderModGrid();
+});
+function showView(name){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + name).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+  document.querySelectorAll(".bn-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+}
+document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.view)));
+function renderQuizFilter(){
+  const wrap = document.getElementById("quizFilter");
+  const chips = [{id:"all", label:"Alle Module"}].concat(MODULES.map(m => ({id:m.id, label:m.title})));
+  wrap.innerHTML = chips.map(c => `<button class="qf-chip ${quizFilterModule===c.id?'active':''}" data-id="${c.id}">${c.label}</button>`).join("");
+  wrap.querySelectorAll(".qf-chip").forEach(chip => chip.addEventListener("click", () => { quizFilterModule = chip.dataset.id; renderQuizFilter(); }));
+}
+function startQuiz(){
+  let pool = quizFilterModule === "all" ? QUIZ.slice() : QUIZ.filter(q => q.m === quizFilterModule);
+  pool = pool.sort(() => Math.random() - 0.5);
+  quizQueue = pool; quizIndex = 0; quizScore = 0;
+  document.getElementById("quizIntro").style.display = "none";
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizRunning").style.display = "block";
+  renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  quizAnswered = false;
+  const q = quizQueue[quizIndex];
+  const modTitle = MODULES.find(m => m.id === q.m).title;
+  const box = document.getElementById("quizRunning");
+  box.innerHTML = `
+    <div class="quiz-progress"><span>Frage ${quizIndex+1} / ${quizQueue.length}</span><span>${modTitle}</span></div>
+    <div class="q-card">
+      <div class="q-text">${q.q}</div>
+      <div id="qOpts">${q.o.map((opt,i) => `<button class="q-opt" data-i="${i}">${opt}</button>`).join("")}</div>
+      <div id="qExplainWrap"></div>
+    </div>`;
+  box.querySelectorAll(".q-opt").forEach(btn => btn.addEventListener("click", () => selectAnswer(parseInt(btn.dataset.i))));
+}
+function selectAnswer(i){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQueue[quizIndex];
+  const opts = document.querySelectorAll(".q-opt");
+  opts.forEach((btn, idx) => {
+    if(idx === q.c) btn.classList.add("correct");
+    else if(idx === i) btn.classList.add("wrong");
+    btn.style.pointerEvents = "none";
+  });
+  if(i === q.c) quizScore++;
+  document.getElementById("qExplainWrap").innerHTML = `
+    <div class="q-explain">${q.e}</div>
+    <button class="q-next-btn" onclick="nextQuizQuestion()">${quizIndex < quizQueue.length-1 ? 'Nächste Frage' : 'Ergebnis anzeigen'}</button>`;
+}
+function nextQuizQuestion(){
+  quizIndex++;
+  if(quizIndex >= quizQueue.length){ showQuizResult(); } else { renderQuizQuestion(); }
+}
+function showQuizResult(){
+  document.getElementById("quizRunning").style.display = "none";
+  const doneBox = document.getElementById("quizDone");
+  doneBox.style.display = "block";
+  const pct = Math.round((quizScore/quizQueue.length)*100);
+  doneBox.innerHTML = `
+    <div class="quiz-result"><div class="score">${quizScore}/${quizQueue.length}</div><div class="score-label">${pct}% richtig beantwortet</div></div>
+    <button class="quiz-start-btn" onclick="resetQuizView()">Neue Prüfung</button>`;
+}
+function resetQuizView(){
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizIntro").style.display = "block";
+}
+renderModGrid(); renderQuizFilter(); updateHero();
+</script>
+</body>
+</html>
