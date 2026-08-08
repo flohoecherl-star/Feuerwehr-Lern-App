@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kettensäge · Lernapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C0E; --bg-elevated:#14181B; --bg-card:#181C1F;
+  --line:#262B2F; --line-soft:#1D2124;
+  --text:#E8E6E1; --text-dim:#8A9199; --text-faint:#565D63;
+  --orange:#E2622F; --orange-dim:#6B341A;
+  --amber:#E8A33D; --teal:#3FA79A; --teal-dim:#245852; --red:#C1361B;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+body{padding-bottom:70px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);}
+h1,h2,h3{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em;}
+header.hero{padding:22px 18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101316,var(--bg));}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.hero-title h1{font-size:26px;color:var(--text);}
+.hero-title .eyebrow{margin-bottom:4px;}
+.gauge-wrap{position:relative;width:74px;height:74px;flex-shrink:0;}
+.gauge-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:var(--line);stroke-width:7;}
+.gauge-fill{fill:none;stroke:var(--orange);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .6s ease;}
+.gauge-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--orange);}
+.hero-sub{margin-top:10px;font-size:12.5px;color:var(--text-dim);}
+nav.tabs{display:flex;overflow-x:auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg-elevated);position:sticky;top:0;z-index:20;scrollbar-width:none;}
+nav.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.03em;padding:8px 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);white-space:nowrap;cursor:pointer;}
+.tab-btn.active{background:var(--orange);color:#20090A;border-color:var(--orange);font-weight:600;}
+main{padding:16px 14px 30px;max-width:640px;margin:0 auto;}
+.view{display:none;}
+.view.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.mod-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.mod-card{display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;cursor:pointer;}
+.mod-card:active{border-color:var(--orange-dim);}
+.mod-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);width:22px;flex-shrink:0;}
+.mod-info{flex:1;min-width:0;}
+.mod-info .mtitle{font-family:'Oswald',sans-serif;font-size:15px;font-weight:500;color:var(--text);}
+.mod-info .msub{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.mod-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.mod-check.done{background:var(--teal);border-color:var(--teal);}
+.mod-check.done::after{content:'✓';font-size:11px;color:#04211D;font-weight:700;}
+.mod-header{margin-bottom:14px;}
+.back-btn{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0 0 10px;display:flex;align-items:center;gap:4px;}
+.mod-header h2{font-size:22px;margin-bottom:4px;}
+.mod-header .msub{font-size:12.5px;color:var(--text-dim);}
+.block{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;margin-bottom:10px;}
+.block h3{font-size:14px;color:var(--orange);margin-bottom:8px;letter-spacing:.02em;}
+.block h3.teal{color:var(--teal);}
+.block h3.red{color:var(--red);}
+.block h3.amber{color:var(--amber);}
+.block p{font-size:13.5px;line-height:1.55;color:var(--text);margin-bottom:6px;}
+.block ul{padding-left:18px;margin:4px 0;}
+.block li{font-size:13.5px;line-height:1.6;color:var(--text);margin-bottom:4px;}
+.block li b{color:var(--text);font-weight:600;}
+.block .note{font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic;}
+.warn-box{border-left:3px solid var(--red);background:rgba(193,54,27,.08);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:8px;}
+.warn-box p{font-size:12.5px;color:#E8B9AC;margin:0;}
+.warn-box .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:4px;}
+.mark-done-btn{width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--teal-dim);background:transparent;color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:.04em;cursor:pointer;margin-top:6px;}
+.mark-done-btn.is-done{background:var(--teal);color:#04211D;border-color:var(--teal);}
+.formula{font-family:'IBM Plex Mono',monospace;background:#0E1114;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;color:var(--orange);text-align:center;letter-spacing:.02em;}
+.step-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-soft);}
+.step-item:last-child{border-bottom:none;}
+.step-num{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;color:var(--orange);width:24px;flex-shrink:0;}
+.step-text b{display:block;font-size:13px;color:var(--text);}
+.step-text span{font-size:12px;color:var(--text-dim);}
+.quiz-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.qf-chip{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:6px 10px;border-radius:14px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);cursor:pointer;}
+.qf-chip.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal-dim);}
+.quiz-start-btn{width:100%;padding:15px;background:var(--orange);color:#20090A;border:none;border-radius:var(--radius);font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+.quiz-progress{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:8px;display:flex;justify-content:space-between;}
+.q-card{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+.q-text{font-size:15px;line-height:1.5;margin-bottom:14px;color:var(--text);font-family:'Oswald',sans-serif;font-weight:400;}
+.q-opt{display:block;width:100%;text-align:left;padding:12px 13px;margin-bottom:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg-elevated);color:var(--text);font-size:13.5px;cursor:pointer;}
+.q-opt.correct{border-color:var(--teal);background:rgba(63,167,154,.12);color:var(--teal);}
+.q-opt.wrong{border-color:var(--red);background:rgba(193,54,27,.12);color:#E8998A;}
+.q-explain{font-size:12.5px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);line-height:1.5;}
+.q-next-btn{width:100%;padding:13px;margin-top:14px;background:var(--teal);color:#04211D;border:none;border-radius:8px;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+.quiz-result{text-align:center;padding:30px 16px;}
+.quiz-result .score{font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--orange);font-weight:600;}
+.quiz-result .score-label{font-size:12px;color:var(--text-dim);margin-top:4px;}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg-elevated);border-top:1px solid var(--line);z-index:30;}
+.bn-btn{flex:1;padding:10px 4px 12px;text-align:center;background:none;border:none;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.02em;cursor:pointer;}
+.bn-btn.active{color:var(--orange);}
+.bn-icon{display:block;font-size:18px;margin-bottom:3px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-top">
+    <div class="hero-title">
+      <div class="eyebrow">Modulare Ausbildung · Lehrmeinung Bayern</div>
+      <h1>Kettensäge</h1>
+    </div>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 80 80">
+        <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>
+        <circle id="gaugeFill" class="gauge-fill" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+      </svg>
+      <div class="gauge-pct" id="gaugePct">0%</div>
+    </div>
+  </div>
+  <div class="hero-sub" id="heroSub">Ausbildungsstand · 0 von 10 Modulen abgeschlossen</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="uebersicht">Module</button>
+  <button class="tab-btn" data-view="spickzettel">Spickzettel</button>
+  <button class="tab-btn" data-view="quiz">Prüfung</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-uebersicht">
+    <div class="mod-grid" id="modGrid"></div>
+  </section>
+
+  <section class="view" id="view-detail">
+    <button class="back-btn" onclick="showView('uebersicht')">← Alle Module</button>
+    <div class="mod-header">
+      <div class="eyebrow" id="detailNum"></div>
+      <h2 id="detailTitle"></h2>
+      <div class="msub" id="detailSub"></div>
+    </div>
+    <div id="detailBody"></div>
+    <button class="mark-done-btn" id="markDoneBtn">Als durchgearbeitet markieren</button>
+  </section>
+
+  <section class="view" id="view-spickzettel">
+    <div class="block">
+      <h3>Modulaufbau Kettensägenausbildung</h3>
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><b>Modul 1 – Einweisung</b><span>Grundlagen, Wartung, Handhabung</span></div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><b>Modul 2 – Liegendes/aufliegendes Holz</b><span>Entasten, Ablängen, Spannungen erkennen</span></div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><b>Modul 3 – Einfache Fällung</b><span>Stehendes Holz ohne Zugbelastung</span></div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text"><b>Modul Sturmholz</b><span>Bäume unter Zugbelastung, zusätzliche Qualifikation nötig</span></div></div>
+      <div class="note">Jedes Modul baut auf dem vorherigen auf – ohne Modul 1 kein Einsatz an liegendem oder stehendem Holz.</div>
+    </div>
+    <div class="block">
+      <h3 class="red">Rückschlag (Kickback)</h3>
+      <p>Entsteht, wenn das obere Kettenspitzenviertel unkontrolliert Kontakt mit Holz oder Fremdkörpern bekommt – die Säge schlägt schlagartig nach oben/hinten. Vermeidung: Kettenbremse funktionsfähig halten, mit dem unteren Schienenbereich sägen, sicheren Stand einnehmen.</p>
+    </div>
+    <div class="block">
+      <h3 class="teal">Fällschnitttechnik</h3>
+      <ul>
+        <li><b>Fallkerb:</b> bestimmt die Fällrichtung, ca. 1/4–1/5 des Stammdurchmessers tief</li>
+        <li><b>Fällschnitt:</b> gegenüberliegend, etwas oberhalb der Fallkerbsohle</li>
+        <li><b>Bruchleiste:</b> verbleibender Steg, führt den Baum kontrolliert in die Fallrichtung</li>
+        <li><b>Fluchtweg:</b> vor dem Fällschnitt festlegen, ca. 45° schräg nach hinten zur Fallrichtung</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3 class="amber">PSA Kettensägenarbeit</h3>
+      <ul>
+        <li>Schnittschutzhose (Klasse entsprechend Einsatzbereich)</li>
+        <li>Helm mit Visier und Gehörschutz</li>
+        <li>Schnittschutzhandschuhe</li>
+        <li>Sicherheitsschuhe mit Schnittschutzeinlage</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="view" id="view-quiz">
+    <div id="quizIntro">
+      <div class="block">
+        <h3>Prüfungsmodus</h3>
+        <p>Fragen zu allen Modulen der Kettensägenausbildung. Auswahl nach Themenbereich möglich.</p>
+      </div>
+      <div class="quiz-filter" id="quizFilter"></div>
+      <button class="quiz-start-btn" onclick="startQuiz()">Prüfung starten</button>
+    </div>
+    <div id="quizRunning" style="display:none;"></div>
+    <div id="quizDone" style="display:none;"></div>
+  </section>
+</main>
+
+<nav class="bottomnav">
+  <button class="bn-btn active" data-view="uebersicht" onclick="showView('uebersicht')"><span class="bn-icon">▤</span>Module</button>
+  <button class="bn-btn" data-view="spickzettel" onclick="showView('spickzettel')"><span class="bn-icon">◈</span>Spickzettel</button>
+  <button class="bn-btn" data-view="quiz" onclick="showView('quiz')"><span class="bn-icon">◉</span>Prüfung</button>
+</nav>
+
+<script>
+const MODULES = [
+{
+  id:"psa", num:"01", title:"PSA & Grundlagen",
+  sub:"Schutzausrüstung · sicherer Umgang",
+  body:`
+  <div class="block">
+    <h3>Persönliche Schutzausrüstung</h3>
+    <ul>
+      <li>Schnittschutzhose passend zur Einsatzklasse</li>
+      <li>Helm mit Visier und Gehörschutz (Kombihelm)</li>
+      <li>Schnittschutzhandschuhe</li>
+      <li>Sicherheitsschuhe mit Schnittschutzeinlage und griffiger Sohle</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Grundregeln sicherer Umgang</h3>
+    <ul>
+      <li>Sicheren Stand vor jedem Schnitt sicherstellen</li>
+      <li>Säge nie über Schulterhöhe einsetzen</li>
+      <li>Umgebung vor Arbeitsbeginn beurteilen (Personen, Hindernisse, Fluchtwege)</li>
+      <li>Nur mit vollständiger PSA arbeiten</li>
+    </ul>
+  </div>`
+},
+{
+  id:"geraetekunde", num:"02", title:"Gerätekunde",
+  sub:"Aufbau · Sicherheitseinrichtungen",
+  body:`
+  <div class="block">
+    <h3>Sicherheitseinrichtungen der Kettensäge</h3>
+    <ul>
+      <li><b>Kettenbremse:</b> stoppt die Kette bei Rückschlag oder manueller Auslösung</li>
+      <li><b>Krallenanschlag:</b> dient als Drehpunkt beim Sägen und erleichtert kontrollierte Schnittführung</li>
+      <li><b>Kettenfänger:</b> fängt eine gerissene Kette auf, schützt vor Verletzungen</li>
+      <li><b>Gashebelsperre:</b> verhindert unbeabsichtigtes Gasgeben</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Funktionsprüfung vor Arbeitsbeginn</h3>
+    <p>Vor jedem Einsatz: Kettenbremse, Kettenspannung, Kettenschmierung und allgemeinen Zustand der Säge kontrollieren.</p>
+  </div>`
+},
+{
+  id:"wartung", num:"03", title:"Wartung & Pflege",
+  sub:"Schärfen · Kettenspannung",
+  body:`
+  <div class="block">
+    <h3>Regelmäßige Wartung</h3>
+    <ul>
+      <li>Kette regelmäßig nachschärfen – stumpfe Ketten erhöhen Rückschlaggefahr und Kraftaufwand</li>
+      <li>Kettenspannung vor und während der Arbeit prüfen</li>
+      <li>Kraftstoffgemisch nach Herstellervorgabe (i. d. R. 2-Takt-Gemisch) und Kettenöl auffüllen</li>
+      <li>Sichtprüfung auf Beschädigungen vor jedem Einsatz</li>
+    </ul>
+  </div>
+  <div class="block warn-box" style="border:1px solid var(--line);background:var(--bg-card);">
+    <h3 style="color:var(--orange);margin-bottom:6px;">Dokumentation</h3>
+    <p style="color:var(--text);">Wartungsarbeiten und Betriebsstunden werden im Gerätebuch dokumentiert – Grundlage für Prüffristen und Nachvollziehbarkeit.</p>
+  </div>`
+},
+{
+  id:"schnitttechnik", num:"04", title:"Grundlegende Schnitttechniken",
+  sub:"Zug-/Druckseite · Entlastungsschnitt",
+  body:`
+  <div class="block">
+    <h3>Zugseite und Druckseite</h3>
+    <p>An der Unterseite der Schwertspitze zieht die Kette die Säge zum Holz (Zugseite), an der Oberseite drückt sie die Säge vom Holz weg (Druckseite) – Kenntnis dieser Kräfte ist zentral für kontrolliertes Arbeiten.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Entlastungsschnitt</h3>
+    <p>Bei Holz unter Spannung wird zunächst ein kleiner Entlastungsschnitt auf der Druckseite gesetzt, um die Spannung kontrolliert abzubauen, bevor der eigentliche Trennschnitt erfolgt.</p>
+  </div>`
+},
+{
+  id:"liegendes_holz", num:"05", title:"Modul 1 · Liegendes Holz",
+  sub:"Entasten · Ablängen",
+  body:`
+  <div class="block">
+    <h3>Einsatz an liegendem/aufliegendem Holz</h3>
+    <ul>
+      <li>Entasten: von der Stammbasis Richtung Krone arbeiten, Äste unter Spannung besonders beachten</li>
+      <li>Ablängen: Auflagepunkte des Stammes erkennen, Schnittreihenfolge (Ober-/Unterschnitt) danach ausrichten</li>
+      <li>Spannungen im Holz vor jedem Schnitt einschätzen – überraschendes Nachgeben vermeiden</li>
+    </ul>
+  </div>
+  <div class="block warn-box" style="border:1px solid var(--line);background:var(--bg-card);">
+    <h3 style="color:var(--orange);margin-bottom:6px;">Basismodul der Feuerwehrausbildung</h3>
+    <p style="color:var(--text);">Dieses Modul bildet die Grundlage der gesamten Kettensägenausbildung in der Feuerwehr und ist Voraussetzung für alle weiteren Module.</p>
+  </div>`
+},
+{
+  id:"faellung", num:"06", title:"Modul 2 · Einfache Fällung",
+  sub:"Stehendes Holz ohne Zugbelastung",
+  body:`
+  <div class="block">
+    <h3>Fällschnitttechnik</h3>
+    <ul>
+      <li><b>Fallkerb:</b> bestimmt die Fällrichtung, ca. 1/4–1/5 des Stammdurchmessers tief</li>
+      <li><b>Fällschnitt:</b> gegenüberliegend, etwas oberhalb der Fallkerbsohle angesetzt</li>
+      <li><b>Bruchleiste:</b> verbleibender Steg zwischen Fallkerb und Fällschnitt, führt den Baum kontrolliert in die Fallrichtung</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Vorbereitung</h3>
+    <ul>
+      <li>Fällrichtung unter Berücksichtigung von Wuchsform, Wind und Hindernissen festlegen</li>
+      <li>Fluchtweg vor dem Fällschnitt anlegen – ca. 45° schräg nach hinten entgegen der Fallrichtung</li>
+      <li>Gefahrenbereich (Baumlänge plus Sicherheitsabstand) absperren</li>
+    </ul>
+  </div>`
+},
+{
+  id:"sturmholz", num:"07", title:"Modul Sturmholz",
+  sub:"Bäume unter Zugbelastung",
+  body:`
+  <div class="block">
+    <h3 class="red">Erweiterte Qualifikation erforderlich</h3>
+    <p>Der Einsatz an Bäumen unter Zugbelastung, Windwurf oder komplexen Lagen (z. B. verhakte Kronen) erfordert eine zusätzliche, spezialisierte Ausbildung über das Basismodul hinaus.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Besondere Herausforderungen</h3>
+    <ul>
+      <li>Erkennen und Einschätzen von gespeicherten Kräften im Holz</li>
+      <li>Hebelgesetze bei der Schnittführung berücksichtigen</li>
+      <li>Zusätzliche Rückehilfsmittel (z. B. Seilwinde) einplanen</li>
+      <li>Erhöhte Absperrung und Vorsicht bei instabilen Lagen</li>
+    </ul>
+  </div>`
+},
+{
+  id:"gefahren", num:"08", title:"Gefahren beim Kettensägeneinsatz",
+  sub:"Rückschlag · Totholz",
+  body:`
+  <div class="block">
+    <h3 class="red">Rückschlag (Kickback)</h3>
+    <p>Entsteht durch unkontrollierten Kontakt des oberen Kettenspitzenviertels mit Holz oder Fremdkörpern – die Säge schlägt schlagartig nach oben/hinten in Richtung des Anwenders.</p>
+  </div>
+  <div class="block">
+    <h3>Weitere Gefahren</h3>
+    <ul>
+      <li>Umstürzende oder unkontrolliert fallende Bäume</li>
+      <li>Astbruch/Totholz aus der Krone ("Totäste")</li>
+      <li>Verhakte, unter Spannung stehende Kronen benachbarter Bäume</li>
+      <li>Rutschgefahr am Arbeitsplatz</li>
+    </ul>
+  </div>
+  <div class="block warn-box">
+    <span class="label">Grundsatz</span>
+    <p>Gefahrenbereich konsequent absperren, ständige Beobachtung der Umgebung, kein Alleinarbeiten bei Fällarbeiten.</p>
+  </div>`
+},
+{
+  id:"einsatztaktik", num:"09", title:"Einsatztaktik Feuerwehr",
+  sub:"Sturmschaden · Zusammenarbeit",
+  body:`
+  <div class="block">
+    <h3>Typische Einsatzlagen</h3>
+    <ul>
+      <li>Umgestürzte Bäume auf Straßen oder Gebäuden nach Sturmschäden</li>
+      <li>Freischneiden von Rettungswegen</li>
+      <li>Unterstützung bei technischer Hilfeleistung</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Zusammenarbeit im Trupp</h3>
+    <p>Kettensägenarbeit erfolgt nie allein – ein Sicherungsposten beobachtet Umgebung und Baum, hält Fluchtweg frei und kann bei Bedarf sofort eingreifen oder Hilfe anfordern.</p>
+  </div>
+  <div class="block">
+    <h3 class="amber">Absicherung der Einsatzstelle</h3>
+    <p>Gefahrenbereich weiträumig absperren, Verkehr regeln, Schaulustige fernhalten, insbesondere bei Arbeiten an instabilen oder unter Spannung stehenden Bäumen.</p>
+  </div>`
+},
+{
+  id:"nachbereitung", num:"10", title:"Nachbereitung",
+  sub:"Reinigung · Wartungsprotokoll",
+  body:`
+  <div class="block">
+    <h3>Nach dem Einsatz</h3>
+    <ul>
+      <li>Säge reinigen, auf Beschädigungen prüfen</li>
+      <li>Kette nachschärfen bzw. zum Schärfen vorbereiten</li>
+      <li>Betriebsstoffe kontrollieren und ggf. auffüllen</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Dokumentation</h3>
+    <p>Einsatz- und Betriebsstunden sowie durchgeführte Wartungsarbeiten werden im Gerätebuch festgehalten – wichtig für Prüffristen und Nachvollziehbarkeit des Gerätezustands.</p>
+  </div>`
+},
+{
+  id:"baumbiologie", num:"11", title:"Baumbiologie Grundlagen",
+  sub:"Wuchsformen · Schwachstellen",
+  body:`
+  <div class="block">
+    <h3>Erkennen von Schwachstellen</h3>
+    <ul>
+      <li>Pilzbefall, Fäulnis und Rindenschäden können die Standfestigkeit erheblich beeinträchtigen</li>
+      <li>Einseitiger Kronenwuchs beeinflusst die natürliche Fallrichtung des Baumes</li>
+      <li>Wurzelaufwuchs und sichtbare Hohlräume am Stammfuß deuten auf Instabilität hin</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Bedeutung für die Feuerwehr</h3>
+    <p>Auch ohne forstwirtschaftliche Ausbildung sollten offensichtliche Warnzeichen erkannt und im Zweifel Fachpersonal (Baumpfleger, Forst) hinzugezogen werden, bevor eine Fällung durch die Feuerwehr erfolgt.</p>
+  </div>`
+},
+{
+  id:"seilwinden", num:"12", title:"Seilwinden & Zugmittel",
+  sub:"Rückehilfsmittel",
+  body:`
+  <div class="block">
+    <h3>Einsatz von Seilwinden</h3>
+    <p>Bei Bäumen unter Spannung oder in schwierigen Lagen können Seilwinden eingesetzt werden, um die Fallrichtung kontrolliert zu unterstützen oder Zugkräfte kontrolliert abzubauen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Sicherheitsabstand</h3>
+    <p>Beim Einsatz von Zugmitteln ist ein ausreichender Sicherheitsabstand zum gespannten Seil einzuhalten – ein reißendes Seil unter Last kann erhebliche Verletzungen verursachen.</p>
+  </div>`
+},
+{
+  id:"fachpersonal", num:"13", title:"Zusammenarbeit mit Fachpersonal",
+  sub:"Baumpfleger · Experten",
+  body:`
+  <div class="block">
+    <h3>Wann Fachpersonal hinzugezogen wird</h3>
+    <p>Bei komplexen oder besonders instabilen Lagen (z. B. großflächige Sturmschäden, verhakte Kronen, Bäume mit unklarer Standfestigkeit) sollte die Feuerwehr die Zusammenarbeit mit qualifizierten Baumpflegern oder Forstpersonal suchen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Aufgabenteilung</h3>
+    <p>Die Feuerwehr übernimmt in solchen Fällen häufig die Gefahrenabwehr und Absicherung, während die eigentliche Fällung oder Sicherung durch spezialisiertes Fachpersonal erfolgt.</p>
+  </div>`
+},
+{
+  id:"wetter", num:"14", title:"Wetter- und Umgebungseinflüsse",
+  sub:"Windlast · Nässe",
+  body:`
+  <div class="block">
+    <h3>Windeinfluss</h3>
+    <p>Starker Wind erhöht die Gefahr unvorhersehbarer Bewegungen von Bäumen und Ästen erheblich – bei stärkerem Wind sollte auf Fällarbeiten nach Möglichkeit verzichtet oder besondere Vorsicht angewendet werden.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Nässe und Rutschgefahr</h3>
+    <p>Nasses Holz und feuchter Untergrund erhöhen die Rutschgefahr am Arbeitsplatz sowie das Risiko unkontrollierter Bewegungen der Kettensäge – festes Schuhwerk und sicherer Stand sind besonders wichtig.</p>
+  </div>`
+},
+{
+  id:"recht", num:"15", title:"Rechtliche Aspekte",
+  sub:"Zuständigkeit · Naturschutz",
+  body:`
+  <div class="block">
+    <h3>Zuständigkeit im Einsatzfall</h3>
+    <p>Die Feuerwehr handelt bei akuter Gefahr (z. B. Baum auf der Straße) im Rahmen der Gefahrenabwehr – für reguläre Baumpflege oder -fällung außerhalb akuter Gefahrenlagen sind i. d. R. andere Stellen zuständig.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Naturschutz und Verkehrssicherungspflicht</h3>
+    <p>Auch im Einsatzfall sind – soweit mit der Gefahrenabwehr vereinbar – naturschutzrechtliche Aspekte (z. B. Baumschutzsatzungen) zu berücksichtigen. Die Verkehrssicherungspflicht des jeweiligen Grundstückseigentümers bleibt unabhängig vom Feuerwehreinsatz bestehen.</p>
+  </div>`
+}
+];
+
+const QUIZ = [
+{m:"psa",q:"Welche PSA ist beim Kettensägeneinsatz zwingend erforderlich?",o:["Nur Handschuhe","Schnittschutzhose, Helm mit Visier/Gehörschutz, Schnittschutzhandschuhe, Sicherheitsschuhe","Nur ein Helm","Normale Arbeitskleidung reicht aus"],c:1,e:"Vollständige PSA ist zwingend erforderlich."},
+{m:"psa",q:"Wie hoch sollte die Kettensäge maximal eingesetzt werden?",o:["Über Kopfhöhe","Nie über Schulterhöhe","Nur am Boden","Höhe spielt keine Rolle"],c:1,e:"Der Einsatz über Schulterhöhe erhöht das Unfallrisiko erheblich."},
+{m:"geraetekunde",q:"Welche Aufgabe hat die Kettenbremse?",o:["Sie kühlt den Motor","Sie stoppt die Kette bei Rückschlag oder manueller Auslösung","Sie schärft die Kette automatisch","Sie reguliert die Kettenspannung"],c:1,e:"Die Kettenbremse ist eine zentrale Sicherheitseinrichtung gegen Rückschlagverletzungen."},
+{m:"geraetekunde",q:"Wofür dient der Krallenanschlag?",o:["Als Transportgriff","Als Drehpunkt für kontrollierte Schnittführung","Zum Nachfüllen von Kettenöl","Zur Kettenspannung"],c:1,e:"Der Krallenanschlag dient als Drehpunkt und erleichtert kontrolliertes Sägen."},
+{m:"wartung",q:"Warum erhöht eine stumpfe Kette die Rückschlaggefahr?",o:["Sie erhöht sie nicht","Weil mehr Kraft und unkontrollierter Kontakt nötig werden","Weil die Kette dann leichter reißt","Stumpfe Ketten sind sicherer"],c:1,e:"Stumpfe Ketten erfordern mehr Kraft und erhöhen so die Rückschlaggefahr."},
+{m:"wartung",q:"Wo werden Wartungsarbeiten und Betriebsstunden dokumentiert?",o:["Im Gerätebuch","Nirgends","Nur mündlich","Im Atemschutznachweis"],c:0,e:"Das Gerätebuch dokumentiert Wartung und Betriebsstunden."},
+{m:"schnitttechnik",q:"Was ist die Zugseite der Sägekette?",o:["Die Oberseite der Schwertspitze","Die Unterseite der Schwertspitze, die die Säge zum Holz zieht","Die Seite mit dem Kettenfänger","Es gibt keine Zugseite"],c:1,e:"An der Unterseite zieht die Kette die Säge zum Holz."},
+{m:"schnitttechnik",q:"Wozu dient ein Entlastungsschnitt?",o:["Um die Kette zu schärfen","Um Spannung im Holz kontrolliert abzubauen","Um den Motor zu entlasten","Um die Fällrichtung zu ändern"],c:1,e:"Der Entlastungsschnitt baut Spannung kontrolliert ab, bevor der Trennschnitt erfolgt."},
+{m:"liegendes_holz",q:"Worauf muss beim Entasten besonders geachtet werden?",o:["Auf die Farbe der Rinde","Auf Äste unter Spannung","Auf die Windrichtung ausschließlich","Auf die Tageszeit"],c:1,e:"Äste unter Spannung können sich beim Schneiden unkontrolliert lösen."},
+{m:"liegendes_holz",q:"Welches Modul bildet die Grundlage für alle weiteren Kettensägenmodule?",o:["Modul Sturmholz","Modul 1 – Einweisung/liegendes Holz","Modul 2 – Fällung","Es gibt kein Basismodul"],c:1,e:"Modul 1 ist Voraussetzung für alle weiteren Module."},
+{m:"faellung",q:"Wie tief wird der Fallkerb typischerweise gesägt?",o:["1/4 bis 1/5 des Stammdurchmessers","Die Hälfte des Stammdurchmessers","Nur wenige Millimeter","Komplett durch den Stamm"],c:0,e:"Der Fallkerb wird ca. 1/4 bis 1/5 des Durchmessers tief gesägt."},
+{m:"faellung",q:"Welche Funktion hat die Bruchleiste?",o:["Sie stoppt die Kettensäge","Sie führt den Baum kontrolliert in die Fallrichtung","Sie dient als Sicherungsseil","Sie ersetzt den Fallkerb"],c:1,e:"Die Bruchleiste ist der verbleibende Steg, der den Baum kontrolliert führt."},
+{m:"faellung",q:"In welchem Winkel wird der Fluchtweg vor dem Fällschnitt angelegt?",o:["Direkt in Fallrichtung","Ca. 45° schräg nach hinten entgegen der Fallrichtung","Im rechten Winkel zur Fallrichtung","Fluchtweg ist nicht notwendig"],c:1,e:"Der Fluchtweg führt schräg nach hinten, weg von der Fallrichtung."},
+{m:"sturmholz",q:"Was ist beim Einsatz an Bäumen unter Zugbelastung notwendig?",o:["Keine besonderen Maßnahmen","Eine zusätzliche, spezialisierte Ausbildung","Nur eine größere Kettensäge","Ein zweiter Helm"],c:1,e:"Sturmholz-Einsätze erfordern eine erweiterte Qualifikation."},
+{m:"sturmholz",q:"Was muss bei Bäumen unter Spannung besonders beachtet werden?",o:["Nur die Farbe des Holzes","Gespeicherte Kräfte und Hebelgesetze bei der Schnittführung","Die Tageszeit des Einsatzes","Die Herstellerfarbe der Säge"],c:1,e:"Gespeicherte Kräfte können sich beim Schnitt unkontrolliert entladen."},
+{m:"gefahren",q:"Was verursacht einen Rückschlag (Kickback)?",o:["Zu langsames Sägen","Unkontrollierter Kontakt des oberen Kettenspitzenviertels mit Holz/Fremdkörpern","Zu hohe Kettenschmierung","Falsches Kraftstoffgemisch"],c:1,e:"Kontakt des oberen Spitzenviertels löst den Rückschlag aus."},
+{m:"gefahren",q:"Was versteht man unter 'Totholz' als Gefahr?",o:["Bereits gefällte Stämme","Abgestorbene Äste, die aus der Krone brechen können","Kettensägenreste","Nicht mehr nutzbares Werkzeug"],c:1,e:"Totäste können unerwartet aus der Krone fallen."},
+{m:"gefahren",q:"Wie sollte bei Fällarbeiten gearbeitet werden?",o:["Immer allein für schnelleren Fortschritt","Nie allein, mit Sicherungsposten","Nur nachts","Ohne Absperrung des Bereichs"],c:1,e:"Ein Sicherungsposten erhöht die Sicherheit erheblich."},
+{m:"einsatztaktik",q:"Was ist eine typische Feuerwehr-Einsatzlage für den Kettensägeneinsatz?",o:["Wohnungsbrand","Umgestürzte Bäume nach Sturmschäden","Verkehrsunfall ohne Bäume","Chemieunfall"],c:1,e:"Sturmschäden mit umgestürzten Bäumen sind ein klassisches Einsatzszenario."},
+{m:"einsatztaktik",q:"Welche Aufgabe hat der Sicherungsposten im Trupp?",o:["Er sägt mit","Er beobachtet Umgebung und Baum, hält Fluchtweg frei","Er dokumentiert nur den Einsatz","Er ist für die Wasserversorgung zuständig"],c:1,e:"Der Sicherungsposten überwacht die Situation und kann bei Gefahr eingreifen."},
+{m:"nachbereitung",q:"Was gehört zur Nachbereitung nach dem Kettensägeneinsatz?",o:["Nur das Verstauen im Fahrzeug","Reinigung, Kontrolle, ggf. Nachschärfen der Kette","Nichts, das übernimmt die Werkstatt","Nur die Dokumentation ohne Reinigung"],c:1,e:"Reinigung, Kontrolle und Nachschärfen gehören zur Nachbereitung."},
+{m:"nachbereitung",q:"Wozu dient das Gerätebuch bei der Kettensäge?",o:["Zur Dokumentation von Betriebsstunden und Wartung","Nur zur Ablage ohne Nutzen","Als Ersatz für die Bedienungsanleitung","Für private Notizen"],c:0,e:"Es dokumentiert Betriebsstunden und durchgeführte Wartungsarbeiten."},
+{m:"schnitttechnik",q:"An welcher Seite der Schwertspitze drückt die Kette die Säge vom Holz weg?",o:["Unterseite","Oberseite (Druckseite)","Seitlich","Nirgends"],c:1,e:"An der Oberseite wirkt die Druckseite, die die Säge vom Holz wegdrückt."},
+{m:"faellung",q:"Wovon hängt die Wahl der Fällrichtung ab?",o:["Nur vom persönlichen Geschmack","Wuchsform, Wind und Hindernisse","Der Tageszeit","Der Kettensägenmarke"],c:1,e:"Wuchsform, Windeinfluss und Hindernisse bestimmen die sichere Fällrichtung."},
+{m:"geraetekunde",q:"Wofür ist der Kettenfänger da?",o:["Er schärft die Kette","Er fängt eine gerissene Kette auf und schützt vor Verletzungen","Er reguliert die Motorleistung","Er kühlt die Kette"],c:1,e:"Der Kettenfänger verhindert, dass eine gerissene Kette den Anwender trifft."},
+{m:"baumbiologie",q:"Was kann die Standfestigkeit eines Baumes erheblich beeinträchtigen?",o:["Grüne Blätter","Pilzbefall und Fäulnis","Die Jahreszeit allein","Die Baumhöhe allein"],c:1,e:"Pilzbefall und Fäulnis schwächen die Standfestigkeit erheblich."},
+{m:"baumbiologie",q:"Worauf deuten sichtbare Hohlräume am Stammfuß hin?",o:["Auf besondere Stabilität","Auf mögliche Instabilität des Baumes","Auf gesundes Wachstum","Auf nichts Relevantes"],c:1,e:"Hohlräume am Stammfuß sind ein Warnzeichen für Instabilität."},
+{m:"baumbiologie",q:"Was sollte bei unklarer Standfestigkeit eines Baumes erfolgen?",o:["Sofortige Fällung ohne weitere Prüfung","Hinzuziehen von Fachpersonal wie Baumpfleger/Forst","Ignorieren des Risikos","Nur mit einer Person weiterarbeiten"],c:1,e:"Bei Unsicherheit sollte Fachpersonal hinzugezogen werden."},
+{m:"seilwinden",q:"Wozu können Seilwinden bei der Fällung eingesetzt werden?",o:["Zur Beleuchtung der Einsatzstelle","Zur kontrollierten Unterstützung der Fallrichtung","Zum Schärfen der Kette","Zur Wasserversorgung"],c:1,e:"Seilwinden unterstützen die kontrollierte Fällrichtung."},
+{m:"seilwinden",q:"Warum ist Sicherheitsabstand zum gespannten Seil wichtig?",o:["Er ist nicht wichtig","Ein reißendes Seil unter Last kann erhebliche Verletzungen verursachen","Nur aus optischen Gründen","Weil das Seil sonst schmutzig wird"],c:1,e:"Ein reißendes Seil unter Spannung ist eine erhebliche Gefahr."},
+{m:"fachpersonal",q:"Wann sollte die Feuerwehr Fachpersonal wie Baumpfleger hinzuziehen?",o:["Nie, die Feuerwehr macht alles selbst","Bei komplexen oder besonders instabilen Lagen","Nur bei gutem Wetter","Nur bei kleinen Ästen"],c:1,e:"Komplexe, instabile Lagen erfordern oft spezialisierte Unterstützung."},
+{m:"fachpersonal",q:"Welche Aufgabe übernimmt die Feuerwehr häufig, wenn Fachpersonal hinzugezogen wird?",o:["Die gesamte Fällung allein","Gefahrenabwehr und Absicherung der Lage","Nur die Nachbereitung","Keine Aufgabe mehr"],c:1,e:"Die Feuerwehr sichert die Lage, während Fachpersonal die eigentliche Fällung übernimmt."},
+{m:"wetter",q:"Was ist bei starkem Wind während Fällarbeiten zu beachten?",o:["Wind spielt keine Rolle","Erhöhte Gefahr unvorhersehbarer Bewegungen, besondere Vorsicht nötig","Wind erleichtert die Arbeit immer","Nur bei Regen relevant"],c:1,e:"Starker Wind erhöht das Risiko unkontrollierter Bewegungen erheblich."},
+{m:"wetter",q:"Was erhöht nasser Untergrund beim Kettensägeneinsatz?",o:["Nichts Besonderes","Die Rutschgefahr am Arbeitsplatz","Die Schärfe der Kette","Die Motorleistung"],c:1,e:"Nässe erhöht Rutschgefahr und Unfallrisiko erheblich."},
+{m:"recht",q:"Wann handelt die Feuerwehr bei Bäumen im Rahmen der Gefahrenabwehr?",o:["Bei jeder Baumpflegemaßnahme","Bei akuter Gefahr, z. B. Baum auf der Straße","Nie, das ist nicht ihre Aufgabe","Nur bei Waldbränden"],c:1,e:"Die Feuerwehr handelt bei akuter Gefahr im Rahmen der Gefahrenabwehr."},
+{m:"recht",q:"Wer trägt unabhängig vom Feuerwehreinsatz die Verkehrssicherungspflicht?",o:["Die Feuerwehr dauerhaft","Der jeweilige Grundstückseigentümer","Die Polizei","Niemand"],c:1,e:"Die Verkehrssicherungspflicht liegt beim Grundstückseigentümer."},
+{m:"psa",q:"Was sollte vor Arbeitsbeginn mit der Kettensäge beurteilt werden?",o:["Nur die eigene Stimmung","Die Umgebung auf Personen, Hindernisse und Fluchtwege","Nur der Kraftstoffstand","Nichts, direkt loslegen"],c:1,e:"Eine Umgebungsbeurteilung vor Arbeitsbeginn ist grundlegend."},
+{m:"geraetekunde",q:"Was verhindert die Gashebelsperre?",o:["Unbeabsichtigtes Gasgeben","Das Schärfen der Kette","Den Ölverlust","Rückschlag vollständig"],c:0,e:"Die Gashebelsperre verhindert unbeabsichtigtes Gasgeben."},
+{m:"wartung",q:"Was erhöht eine schlecht gespannte Kette als Risiko?",o:["Nichts, das ist unproblematisch","Erhöhtes Unfallrisiko und ungleichmäßigen Schnitt","Bessere Schnittleistung","Geringeren Kraftstoffverbrauch"],c:1,e:"Eine falsch gespannte Kette erhöht das Unfallrisiko."},
+{m:"schnitttechnik",q:"Warum ist die Kenntnis von Zug- und Druckseite wichtig?",o:["Sie ist irrelevant für die Praxis","Für kontrolliertes und sicheres Arbeiten mit der Säge","Nur für die Wartung","Nur beim Kettenwechsel"],c:1,e:"Das Verständnis der Kräfte ist zentral für kontrolliertes Arbeiten."},
+{m:"liegendes_holz",q:"Wonach richtet sich die Schnittreihenfolge beim Ablängen?",o:["Nach der Tageszeit","Nach den Auflagepunkten des Stammes","Nach der Rindenfarbe","Nach der Kettensägenmarke"],c:1,e:"Die Auflagepunkte bestimmen Ober-/Unterschnitt-Reihenfolge."},
+{m:"faellung",q:"Was sollte vor dem Fällschnitt zwingend festgelegt sein?",o:["Nichts Besonderes","Die Fällrichtung und der Fluchtweg","Nur die Uhrzeit","Der Standort des Fahrzeugs"],c:1,e:"Fällrichtung und Fluchtweg müssen vor dem Schnitt feststehen."},
+{m:"sturmholz",q:"Was kann bei Bäumen unter Spannung passieren, wenn Kräfte falsch eingeschätzt werden?",o:["Nichts, es ist immer sicher","Unkontrollierte, gefährliche Bewegungen des Holzes","Die Säge wird automatisch langsamer","Der Baum wächst schneller"],c:1,e:"Fehleinschätzung gespannter Kräfte kann zu gefährlichen Bewegungen führen."},
+{m:"gefahren",q:"Was ist eine Grundregel zur Vermeidung von Rückschlag?",o:["Mit der oberen Schienenspitze arbeiten","Mit dem unteren Schienenbereich arbeiten und sicheren Stand einnehmen","Ohne Kettenbremse arbeiten","Möglichst schnell schneiden"],c:1,e:"Arbeiten mit dem unteren Schienenbereich reduziert die Rückschlaggefahr."},
+{m:"einsatztaktik",q:"Was ist bei Freischneiden von Rettungswegen wichtig?",o:["Geschwindigkeit vor Sicherheit","Sicheres, kontrolliertes Vorgehen trotz Zeitdrucks","Arbeiten ohne PSA zur Zeitersparnis","Kein Sicherungsposten notwendig"],c:1,e:"Auch unter Zeitdruck bleibt sicheres Arbeiten oberstes Gebot."},
+{m:"nachbereitung",q:"Was passiert mit der Kette nach intensivem Einsatz?",o:["Sie muss nicht weiter beachtet werden","Sie wird nachgeschärft bzw. zum Schärfen vorbereitet","Sie wird entsorgt","Sie wird sofort neu gekauft"],c:1,e:"Nach dem Einsatz wird die Kette nachgeschärft oder vorbereitet."},
+{m:"psa",q:"Welche Klasse Schnittschutzhose ist zu wählen?",o:["Beliebig, Klasse spielt keine Rolle","Passend zur jeweiligen Einsatzklasse","Immer die günstigste Variante","Nur bei Bedarf, meist verzichtbar"],c:1,e:"Die Schnittschutzhose muss zur jeweiligen Einsatzklasse passen."}
+];
+
+const STORAGE_KEY = "kettensaege_lernapp_v1";
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"done":{}}');
+let currentModuleId = null;
+let quizQueue = [], quizIndex = 0, quizScore = 0, quizAnswered = false, quizFilterModule = "all";
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function updateHero(){
+  const total = MODULES.length;
+  const doneCount = MODULES.filter(m => state.done[m.id]).length;
+  const pct = Math.round((doneCount/total)*100);
+  const circumference = 213.6;
+  const offset = circumference - (circumference * pct/100);
+  document.getElementById("gaugeFill").style.strokeDashoffset = offset;
+  document.getElementById("gaugePct").textContent = pct + "%";
+  document.getElementById("heroSub").textContent = `Ausbildungsstand · ${doneCount} von ${total} Modulen abgeschlossen`;
+}
+function renderModGrid(){
+  const grid = document.getElementById("modGrid");
+  grid.innerHTML = MODULES.map(m => `
+    <div class="mod-card" onclick="openModule('${m.id}')">
+      <div class="mod-num">${m.num}</div>
+      <div class="mod-info"><div class="mtitle">${m.title}</div><div class="msub">${m.sub}</div></div>
+      <div class="mod-check ${state.done[m.id] ? 'done' : ''}"></div>
+    </div>`).join("");
+}
+function openModule(id){
+  const m = MODULES.find(x => x.id === id);
+  currentModuleId = id;
+  document.getElementById("detailNum").textContent = "Modul " + m.num;
+  document.getElementById("detailTitle").textContent = m.title;
+  document.getElementById("detailSub").textContent = m.sub;
+  document.getElementById("detailBody").innerHTML = m.body;
+  const btn = document.getElementById("markDoneBtn");
+  btn.textContent = state.done[id] ? "✓ Durchgearbeitet" : "Als durchgearbeitet markieren";
+  btn.className = "mark-done-btn" + (state.done[id] ? " is-done" : "");
+  showView("detail");
+}
+document.getElementById("markDoneBtn").addEventListener("click", () => {
+  if(!currentModuleId) return;
+  state.done[currentModuleId] = !state.done[currentModuleId];
+  saveState(); openModule(currentModuleId); updateHero(); renderModGrid();
+});
+function showView(name){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + name).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+  document.querySelectorAll(".bn-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+}
+document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.view)));
+function renderQuizFilter(){
+  const wrap = document.getElementById("quizFilter");
+  const chips = [{id:"all", label:"Alle Module"}].concat(MODULES.map(m => ({id:m.id, label:m.title})));
+  wrap.innerHTML = chips.map(c => `<button class="qf-chip ${quizFilterModule===c.id?'active':''}" data-id="${c.id}">${c.label}</button>`).join("");
+  wrap.querySelectorAll(".qf-chip").forEach(chip => chip.addEventListener("click", () => { quizFilterModule = chip.dataset.id; renderQuizFilter(); }));
+}
+function startQuiz(){
+  let pool = quizFilterModule === "all" ? QUIZ.slice() : QUIZ.filter(q => q.m === quizFilterModule);
+  pool = pool.sort(() => Math.random() - 0.5);
+  quizQueue = pool; quizIndex = 0; quizScore = 0;
+  document.getElementById("quizIntro").style.display = "none";
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizRunning").style.display = "block";
+  renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  quizAnswered = false;
+  const q = quizQueue[quizIndex];
+  const modTitle = MODULES.find(m => m.id === q.m).title;
+  const box = document.getElementById("quizRunning");
+  box.innerHTML = `
+    <div class="quiz-progress"><span>Frage ${quizIndex+1} / ${quizQueue.length}</span><span>${modTitle}</span></div>
+    <div class="q-card">
+      <div class="q-text">${q.q}</div>
+      <div id="qOpts">${q.o.map((opt,i) => `<button class="q-opt" data-i="${i}">${opt}</button>`).join("")}</div>
+      <div id="qExplainWrap"></div>
+    </div>`;
+  box.querySelectorAll(".q-opt").forEach(btn => btn.addEventListener("click", () => selectAnswer(parseInt(btn.dataset.i))));
+}
+function selectAnswer(i){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQueue[quizIndex];
+  const opts = document.querySelectorAll(".q-opt");
+  opts.forEach((btn, idx) => {
+    if(idx === q.c) btn.classList.add("correct");
+    else if(idx === i) btn.classList.add("wrong");
+    btn.style.pointerEvents = "none";
+  });
+  if(i === q.c) quizScore++;
+  document.getElementById("qExplainWrap").innerHTML = `
+    <div class="q-explain">${q.e}</div>
+    <button class="q-next-btn" onclick="nextQuizQuestion()">${quizIndex < quizQueue.length-1 ? 'Nächste Frage' : 'Ergebnis anzeigen'}</button>`;
+}
+function nextQuizQuestion(){
+  quizIndex++;
+  if(quizIndex >= quizQueue.length){ showQuizResult(); } else { renderQuizQuestion(); }
+}
+function showQuizResult(){
+  document.getElementById("quizRunning").style.display = "none";
+  const doneBox = document.getElementById("quizDone");
+  doneBox.style.display = "block";
+  const pct = Math.round((quizScore/quizQueue.length)*100);
+  doneBox.innerHTML = `
+    <div class="quiz-result"><div class="score">${quizScore}/${quizQueue.length}</div><div class="score-label">${pct}% richtig beantwortet</div></div>
+    <button class="quiz-start-btn" onclick="resetQuizView()">Neue Prüfung</button>`;
+}
+function resetQuizView(){
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizIntro").style.display = "block";
+}
+renderModGrid(); renderQuizFilter(); updateHero();
+</script>
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Wasser-/Eisrettung · Lernapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C0E; --bg-elevated:#14181B; --bg-card:#181C1F;
+  --line:#262B2F; --line-soft:#1D2124;
+  --text:#E8E6E1; --text-dim:#8A9199; --text-faint:#565D63;
+  --accent:#5FC9E8; --accent-dim:#2A5E6E;
+  --amber:#E8A33D; --teal:#3FA79A; --teal-dim:#245852; --red:#C1361B;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+body{padding-bottom:70px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);}
+h1,h2,h3{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em;}
+header.hero{padding:22px 18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101316,var(--bg));}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.hero-title h1{font-size:26px;color:var(--text);}
+.hero-title .eyebrow{margin-bottom:4px;}
+.gauge-wrap{position:relative;width:74px;height:74px;flex-shrink:0;}
+.gauge-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:var(--line);stroke-width:7;}
+.gauge-fill{fill:none;stroke:var(--accent);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .6s ease;}
+.gauge-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);}
+.hero-sub{margin-top:10px;font-size:12.5px;color:var(--text-dim);}
+nav.tabs{display:flex;overflow-x:auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg-elevated);position:sticky;top:0;z-index:20;scrollbar-width:none;}
+nav.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.03em;padding:8px 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);white-space:nowrap;cursor:pointer;}
+.tab-btn.active{background:var(--accent);color:#031A20;border-color:var(--accent);font-weight:600;}
+main{padding:16px 14px 30px;max-width:640px;margin:0 auto;}
+.view{display:none;}
+.view.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.mod-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.mod-card{display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;cursor:pointer;}
+.mod-card:active{border-color:var(--accent-dim);}
+.mod-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);width:22px;flex-shrink:0;}
+.mod-info{flex:1;min-width:0;}
+.mod-info .mtitle{font-family:'Oswald',sans-serif;font-size:15px;font-weight:500;color:var(--text);}
+.mod-info .msub{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.mod-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.mod-check.done{background:var(--teal);border-color:var(--teal);}
+.mod-check.done::after{content:'✓';font-size:11px;color:#04211D;font-weight:700;}
+.mod-header{margin-bottom:14px;}
+.back-btn{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0 0 10px;display:flex;align-items:center;gap:4px;}
+.mod-header h2{font-size:22px;margin-bottom:4px;}
+.mod-header .msub{font-size:12.5px;color:var(--text-dim);}
+.block{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;margin-bottom:10px;}
+.block h3{font-size:14px;color:var(--accent);margin-bottom:8px;letter-spacing:.02em;}
+.block h3.teal{color:var(--teal);}
+.block h3.red{color:var(--red);}
+.block h3.amber{color:var(--amber);}
+.block p{font-size:13.5px;line-height:1.55;color:var(--text);margin-bottom:6px;}
+.block ul{padding-left:18px;margin:4px 0;}
+.block li{font-size:13.5px;line-height:1.6;color:var(--text);margin-bottom:4px;}
+.block li b{color:var(--text);font-weight:600;}
+.block .note{font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic;}
+.warn-box{border-left:3px solid var(--red);background:rgba(193,54,27,.08);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:8px;}
+.warn-box p{font-size:12.5px;color:#E8B9AC;margin:0;}
+.warn-box .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:4px;}
+.mark-done-btn{width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--teal-dim);background:transparent;color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:.04em;cursor:pointer;margin-top:6px;}
+.mark-done-btn.is-done{background:var(--teal);color:#04211D;border-color:var(--teal);}
+.quiz-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.qf-chip{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:6px 10px;border-radius:14px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);cursor:pointer;}
+.qf-chip.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal-dim);}
+.quiz-start-btn{width:100%;padding:15px;background:var(--accent);color:#031A20;border:none;border-radius:var(--radius);font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+.quiz-progress{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:8px;display:flex;justify-content:space-between;}
+.q-card{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+.q-text{font-size:15px;line-height:1.5;margin-bottom:14px;color:var(--text);font-family:'Oswald',sans-serif;font-weight:400;}
+.q-opt{display:block;width:100%;text-align:left;padding:12px 13px;margin-bottom:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg-elevated);color:var(--text);font-size:13.5px;cursor:pointer;}
+.q-opt.correct{border-color:var(--teal);background:rgba(63,167,154,.12);color:var(--teal);}
+.q-opt.wrong{border-color:var(--red);background:rgba(193,54,27,.12);color:#E8998A;}
+.q-explain{font-size:12.5px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);line-height:1.5;}
+.q-next-btn{width:100%;padding:13px;margin-top:14px;background:var(--teal);color:#04211D;border:none;border-radius:8px;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+.quiz-result{text-align:center;padding:30px 16px;}
+.quiz-result .score{font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--accent);font-weight:600;}
+.quiz-result .score-label{font-size:12px;color:var(--text-dim);margin-top:4px;}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg-elevated);border-top:1px solid var(--line);z-index:30;}
+.bn-btn{flex:1;padding:10px 4px 12px;text-align:center;background:none;border:none;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.02em;cursor:pointer;}
+.bn-btn.active{color:var(--accent);}
+.bn-icon{display:block;font-size:18px;margin-bottom:3px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-top">
+    <div class="hero-title">
+      <div class="eyebrow">Grundlagen · Lehrmeinung Bayern / AGBF</div>
+      <h1>Wasser-/Eisrettung</h1>
+    </div>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 80 80">
+        <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>
+        <circle id="gaugeFill" class="gauge-fill" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+      </svg>
+      <div class="gauge-pct" id="gaugePct">0%</div>
+    </div>
+  </div>
+  <div class="hero-sub" id="heroSub">Ausbildungsstand · 0 von 10 Modulen abgeschlossen</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="uebersicht">Module</button>
+  <button class="tab-btn" data-view="spickzettel">Spickzettel</button>
+  <button class="tab-btn" data-view="quiz">Prüfung</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-uebersicht">
+    <div class="mod-grid" id="modGrid"></div>
+  </section>
+
+  <section class="view" id="view-detail">
+    <button class="back-btn" onclick="showView('uebersicht')">← Alle Module</button>
+    <div class="mod-header">
+      <div class="eyebrow" id="detailNum"></div>
+      <h2 id="detailTitle"></h2>
+      <div class="msub" id="detailSub"></div>
+    </div>
+    <div id="detailBody"></div>
+    <button class="mark-done-btn" id="markDoneBtn">Als durchgearbeitet markieren</button>
+  </section>
+
+  <section class="view" id="view-spickzettel">
+    <div class="block">
+      <h3>Rettungsmittel</h3>
+      <ul>
+        <li><b>Rettungsweste:</b> persönliche Schwimmhilfe für Einsatzkräfte am/im Wasser</li>
+        <li><b>Wurfsack:</b> Leine mit Schwimmkörper zum Zuwerfen an ertrinkende Person</li>
+        <li><b>Rettungsboard:</b> flaches, paddelbares Rettungsgerät für schnelle Annäherung</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3 class="teal">Strömungsgefahren</h3>
+      <ul>
+        <li><b>Walze:</b> rückwärtsgerichtete Strömung an Wehren, hält Personen fest</li>
+        <li><b>Kehrwasser:</b> Gegenströmung hinter Hindernissen</li>
+        <li><b>Unterspülung:</b> Sog unter Hindernissen, hohe Gefahr des Einklemmens</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3 class="amber">Eisrettung Faustregel</h3>
+      <p>Tragfähigkeit von Eis ist nie sicher einzuschätzen – Eigensicherung (Eisschlitten, Fläche verteilen, Kriechen statt Gehen) hat immer Vorrang vor schnellem Vorgehen.</p>
+    </div>
+    <div class="block">
+      <h3 class="red">Grundsatz Eigensicherung</h3>
+      <p>Rettung "vom sicheren Ufer/Eis aus" hat immer Vorrang vor dem Gehen ins Wasser/Eis – Eigenschutz vor Fremdrettung.</p>
+    </div>
+</section>
+
+  <section class="view" id="view-quiz">
+    <div id="quizIntro">
+      <div class="block">
+        <h3>Prüfungsmodus</h3>
+        <p>Fragen zu allen Modulen. Auswahl nach Themenbereich möglich.</p>
+      </div>
+      <div class="quiz-filter" id="quizFilter"></div>
+      <button class="quiz-start-btn" onclick="startQuiz()">Prüfung starten</button>
+    </div>
+    <div id="quizRunning" style="display:none;"></div>
+    <div id="quizDone" style="display:none;"></div>
+  </section>
+</main>
+
+<nav class="bottomnav">
+  <button class="bn-btn active" data-view="uebersicht" onclick="showView('uebersicht')"><span class="bn-icon">▤</span>Module</button>
+  <button class="bn-btn" data-view="spickzettel" onclick="showView('spickzettel')"><span class="bn-icon">◈</span>Spickzettel</button>
+  <button class="bn-btn" data-view="quiz" onclick="showView('quiz')"><span class="bn-icon">◉</span>Prüfung</button>
+</nav>
+
+<script>
+const MODULES = [
+{
+  id:"grundlagen", num:"01", title:"Grundlagen Wasserrettung",
+  sub:"Eigensicherung · Gefahren",
+  body:`
+  <div class="block">
+    <h3>Grundprinzip</h3>
+    <p>Bei jeder Wasserrettung hat die Eigensicherung der Einsatzkräfte oberste Priorität – ungesichertes Vorgehen ins Wasser gefährdet zusätzliche Personen und verschlechtert die Gesamtlage.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Rettungskette am Wasser</h3>
+    <p>Grundsatz: Rettung vom Ufer aus vor Rettung mit Hilfsmitteln vor Rettung durch Hineingehen/-schwimmen – jede Stufe erhöht das Risiko für die Einsatzkraft.</p>
+  </div>`
+},
+{
+  id:"rettungsmittel", num:"02", title:"Rettungsmittel",
+  sub:"Weste · Wurfsack · Board",
+  body:`
+  <div class="block">
+    <h3>Persönliche Ausrüstung</h3>
+    <p>Rettungsweste ist für Einsatzkräfte am und im Wasser Pflichtausrüstung – sie hält auch bewusstlose Personen an der Wasseroberfläche.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Wurfmittel</h3>
+    <p>Der Wurfsack ermöglicht Rettung ohne direkten Kontakt mit dem Wasser – gezielt in Richtung der Person werfen, Leine sichern und Person zum Ufer ziehen.</p>
+  </div>`
+},
+{
+  id:"stroemung", num:"03", title:"Strömungsgefahren",
+  sub:"Walze · Kehrwasser · Unterspülung",
+  body:`
+  <div class="block">
+    <h3>Gefahrenstellen</h3>
+    <ul>
+      <li><b>Walze:</b> an Wehren, kann Personen dauerhaft festhalten</li>
+      <li><b>Kehrwasser:</b> Gegenströmung hinter Hindernissen, kann irreführend wirken</li>
+      <li><b>Unterspülung:</b> Sog unter Bäumen/Hindernissen mit hoher Einklemmungsgefahr</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Erkennen von Strömungsgefahren</h3>
+    <p>Wasseroberfläche und Fließverhalten geben Hinweise auf gefährliche Strömungsmuster – im Zweifel Fachpersonal (Wasserrettungsdienst) hinzuziehen.</p>
+  </div>`
+},
+{
+  id:"eisrettung", num:"04", title:"Eisrettung Grundlagen",
+  sub:"Eisdicke · Eisschlitten",
+  body:`
+  <div class="block">
+    <h3>Tragfähigkeit von Eis</h3>
+    <p>Die Tragfähigkeit von Eis ist nie sicher von außen abzuschätzen – abhängig von Dicke, Temperaturverlauf, Strömung und Zusammensetzung. Vorsicht hat immer Vorrang.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Eigensicherung auf dem Eis</h3>
+    <ul>
+      <li>Gewicht durch Kriechen statt Gehen verteilen</li>
+      <li>Eisschlitten/Rettungsbrett zur Lastverteilung nutzen</li>
+      <li>Sicherungsleine zum Ufer während der gesamten Rettung</li>
+    </ul>
+  </div>`
+},
+{
+  id:"ufer_rettung", num:"05", title:"Rettungstechniken vom Ufer",
+  sub:"Wurfsack · Rettungsstange",
+  body:`
+  <div class="block">
+    <h3>Vorgehen</h3>
+    <p>Zunächst wird versucht, die Person mit Zuruf zu beruhigen und mit Wurfmitteln (Wurfsack, Rettungsring) vom sicheren Ufer aus zu erreichen, bevor weitere Maßnahmen erwogen werden.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Wurftechnik</h3>
+    <p>Der Wurfsack wird knapp vor die Person geworfen, sodass die Leine über sie hinweggleitet und greifbar wird – Übung verbessert die Trefferquote erheblich.</p>
+  </div>`
+},
+{
+  id:"bootsrettung", num:"06", title:"Bootsrettung Grundlagen",
+  sub:"Annäherung · Aufnahme",
+  body:`
+  <div class="block">
+    <h3>Annäherung</h3>
+    <p>Das Boot nähert sich der Person kontrolliert gegen die Strömung, um ein Vorbeitreiben zu vermeiden – Besatzung trägt durchgehend Rettungswesten.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Aufnahme der Person</h3>
+    <p>Die Aufnahme erfolgt möglichst über das Heck oder die Seite, um Kentergefahr durch einseitige Gewichtsverlagerung zu minimieren.</p>
+  </div>`
+},
+{
+  id:"personenrettung", num:"07", title:"Personenrettung aus dem Wasser",
+  sub:"Techniken · Eigenschutz",
+  body:`
+  <div class="block">
+    <h3>Grundsätze</h3>
+    <p>Direkter Wasserkontakt der Einsatzkraft erfolgt nur als letztes Mittel, wenn andere Rettungswege nicht möglich sind – dann ausschließlich mit vollständiger persönlicher Sicherung.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Umgang mit panischen Personen</h3>
+    <p>In Panik geratene Personen können Retter unter Wasser ziehen – Annäherung von hinten oder mit Hilfsmitteln (Rettungsboard) reduziert dieses Risiko erheblich.</p>
+  </div>`
+},
+{
+  id:"zusammenarbeit", num:"08", title:"Zusammenarbeit mit Wasserrettungsdiensten",
+  sub:"DLRG · Wasserwacht",
+  body:`
+  <div class="block">
+    <h3>Spezialisierte Kräfte</h3>
+    <p>Bei größeren oder komplexeren Wasserrettungslagen werden spezialisierte Organisationen wie DLRG oder Wasserwacht nachalarmiert, die über zusätzliche Ausrüstung und Taucher verfügen.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Koordination</h3>
+    <p>Klare Absprache über Zuständigkeiten und Einsatzabschnitte verhindert Doppelarbeit und erhöht die Sicherheit aller Beteiligten.</p>
+  </div>`
+},
+{
+  id:"hypothermie", num:"09", title:"Hypothermie & Bergungstod",
+  sub:"Medizinische Aspekte",
+  body:`
+  <div class="block">
+    <h3 class="red">Bergungstod</h3>
+    <p>Bei unterkühlten Personen kann eine zu schnelle oder falsche Bergung (z. B. abruptes Aufrichten) zu einem lebensbedrohlichen Kreislaufversagen führen – schonende, möglichst horizontale Rettung ist entscheidend.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Erstversorgung</h3>
+    <p>Nasse Kleidung entfernen, trocken und warm halten, Person nicht aktiv bewegen lassen – enge Abstimmung mit dem Rettungsdienst ist notwendig.</p>
+  </div>`
+},
+{
+  id:"nachbereitung", num:"10", title:"Nachbereitung",
+  sub:"Ausrüstungspflege",
+  body:`
+  <div class="block">
+    <h3>Nach dem Einsatz</h3>
+    <ul>
+      <li>Rettungswesten, Wurfsäcke und Leinen auf Beschädigung prüfen</li>
+      <li>Nasse Ausrüstung trocknen, bevor sie wieder verstaut wird</li>
+      <li>Boote und Motoren gemäß Herstellervorgabe pflegen</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Dokumentation</h3>
+    <p>Einsatzverlauf und Besonderheiten werden dokumentiert – wichtig für Nachbereitung und ggf. Übergabe an weitere Stellen.</p>
+  </div>`
+}
+];
+
+const QUIZ = [
+{m:"grundlagen",q:"Was hat bei jeder Wasserrettung oberste Priorität?",o:["Schnelligkeit","Die Eigensicherung der Einsatzkräfte","Die Wassertemperatur","Die Anzahl der Zuschauer"],c:1,e:"Eigensicherung steht an erster Stelle jeder Wasserrettung."},
+{m:"grundlagen",q:"Welche Rettungsstufe hat das geringste Risiko für die Einsatzkraft?",o:["Hineinschwimmen","Rettung vom Ufer aus mit Wurfmitteln","Direktes Hineingehen ins Wasser","Es gibt keinen Unterschied"],c:1,e:"Rettung vom Ufer aus ist die risikoärmste Stufe der Rettungskette."},
+{m:"rettungsmittel",q:"Warum ist die Rettungsweste für Einsatzkräfte am Wasser wichtig?",o:["Sie ist nur Dekoration","Sie hält auch bewusstlose Personen an der Wasseroberfläche","Sie ist optional und selten genutzt","Sie dient nur der Sichtbarkeit"],c:1,e:"Rettungswesten sichern auch bei Bewusstlosigkeit den Auftrieb."},
+{m:"rettungsmittel",q:"Wie wird der Wurfsack eingesetzt?",o:["Er wird der Person direkt in die Hand gegeben","Gezielt in Richtung der Person geworfen, Leine dann zum Ufer ziehen","Er wird nur als Sitzkissen genutzt","Er ist für Landrettung gedacht"],c:1,e:"Der Wurfsack ermöglicht Rettung ohne direkten Wasserkontakt."},
+{m:"stroemung",q:"Was ist eine Walze an einem Wehr?",o:["Ein Fahrzeugtyp","Eine rückwärtsgerichtete Strömung, die Personen festhalten kann","Ein Rettungsgerät","Eine Boots-Antriebsart"],c:1,e:"Die Walze ist eine gefährliche rückwärtsgerichtete Strömung."},
+{m:"stroemung",q:"Was kennzeichnet eine Unterspülung?",o:["Ruhiges, sicheres Wasser","Sog unter Hindernissen mit hoher Einklemmungsgefahr","Ein Rettungsgerät","Eine Boots-Rettungstechnik"],c:1,e:"Unterspülungen bergen hohes Risiko des Einklemmens."},
+{m:"eisrettung",q:"Wie sollte man sich zur Eigensicherung auf dünnem Eis fortbewegen?",o:["Aufrecht gehen","Kriechend, um das Gewicht zu verteilen","Springend","Rennend"],c:1,e:"Kriechen verteilt das Körpergewicht und reduziert den Druck auf das Eis."},
+{m:"eisrettung",q:"Ist die Tragfähigkeit von Eis von außen sicher einzuschätzen?",o:["Ja, immer eindeutig erkennbar","Nein, sie ist nie sicher abzuschätzen","Nur im Winter sicher erkennbar","Nur bei klarem Eis erkennbar"],c:1,e:"Die Tragfähigkeit von Eis lässt sich nie sicher von außen beurteilen."},
+{m:"ufer_rettung",q:"Was wird zuerst versucht, bevor weitere Rettungsmaßnahmen erfolgen?",o:["Sofort ins Wasser gehen","Beruhigen und mit Wurfmitteln vom Ufer aus erreichen","Die Person ignorieren","Nur beobachten ohne Handeln"],c:1,e:"Zuruf und Wurfmittel vom Ufer sind der erste Schritt."},
+{m:"ufer_rettung",q:"Wie wird der Wurfsack optimal geworfen?",o:["Direkt auf die Person","Knapp vor die Person, damit die Leine über sie gleitet","Weit hinter die Person","Es kommt nicht auf die Zielgenauigkeit an"],c:1,e:"Der Wurf knapp vor die Person erleichtert das Greifen der Leine."},
+{m:"bootsrettung",q:"Wie nähert sich ein Rettungsboot einer Person im Wasser?",o:["Mit der Strömung treibend, unkontrolliert","Kontrolliert gegen die Strömung","Rückwärts ohne Sicht","Mit maximaler Geschwindigkeit"],c:1,e:"Kontrollierte Annäherung gegen die Strömung verhindert Vorbeitreiben."},
+{m:"bootsrettung",q:"Warum erfolgt die Aufnahme möglichst über Heck oder Seite?",o:["Aus Bequemlichkeit","Um Kentergefahr durch einseitige Gewichtsverlagerung zu minimieren","Weil es schneller ist","Es spielt keine Rolle"],c:1,e:"Diese Technik minimiert die Kentergefahr des Bootes."},
+{m:"personenrettung",q:"Wann erfolgt direkter Wasserkontakt der Einsatzkraft?",o:["Immer als erste Maßnahme","Nur als letztes Mittel mit vollständiger Sicherung","Nie unter keinen Umständen","Nur bei warmem Wetter"],c:1,e:"Direkter Kontakt ist die risikoreichste, letzte Option."},
+{m:"personenrettung",q:"Warum können panische Personen für Retter gefährlich sein?",o:["Sie sind ungefährlich","Sie können den Retter unter Wasser ziehen","Sie schwimmen immer schneller weg","Sie sind grundsätzlich ruhig"],c:1,e:"Panik kann zu unkontrollierten, gefährlichen Bewegungen führen."},
+{m:"zusammenarbeit",q:"Welche Organisationen werden bei größeren Wasserrettungslagen oft hinzugezogen?",o:["Nur die Feuerwehrjugend","DLRG oder Wasserwacht","Nur die Bundeswehr","Keine externe Unterstützung möglich"],c:1,e:"Spezialisierte Wasserrettungsorganisationen verfügen über zusätzliche Kapazitäten."},
+{m:"zusammenarbeit",q:"Was verhindert klare Absprache über Zuständigkeiten?",o:["Nichts, sie ist unwichtig","Doppelarbeit und erhöht die Sicherheit aller Beteiligten","Sie erschwert die Koordination","Sie ist nur bei kleinen Einsätzen relevant"],c:1,e:"Klare Absprachen verhindern Doppelarbeit und erhöhen Sicherheit."},
+{m:"hypothermie",q:"Was kann bei zu schneller Bergung unterkühlter Personen passieren?",o:["Nichts Besonderes","Ein lebensbedrohlicher Bergungstod durch Kreislaufversagen","Schnellere Erwärmung","Verbesserter Kreislauf"],c:1,e:"Der Bergungstod ist eine ernstzunehmende Gefahr bei Unterkühlung."},
+{m:"hypothermie",q:"Wie sollte eine unterkühlte Person geborgen werden?",o:["Abrupt aufgerichtet","Schonend, möglichst horizontal","Kopfüber","Ohne besondere Vorsicht"],c:1,e:"Horizontale, schonende Bergung reduziert das Risiko von Komplikationen."},
+{m:"nachbereitung",q:"Was gehört zur Nachbereitung von Wasserrettungseinsätzen?",o:["Nichts Besonderes","Prüfung und Trocknung der Ausrüstung","Nur das Abstellen des Bootes","Sofortige Entsorgung der Ausrüstung"],c:1,e:"Prüfung und Trocknung erhalten die Einsatzbereitschaft."},
+{m:"nachbereitung",q:"Warum ist die Dokumentation nach dem Einsatz wichtig?",o:["Sie ist unwichtig","Für Nachbereitung und ggf. Übergabe an weitere Stellen","Nur aus Traditionsgründen","Sie wird nie genutzt"],c:1,e:"Dokumentation unterstützt Nachbereitung und Informationsweitergabe."},
+{m:"stroemung",q:"Was ist ein Kehrwasser?",o:["Ein Rettungsgerät","Eine Gegenströmung hinter Hindernissen","Eine Boots-Antriebsart","Ein medizinischer Begriff"],c:1,e:"Kehrwasser bezeichnet eine Gegenströmung, die irreführend wirken kann."},
+{m:"eisrettung",q:"Wozu dient ein Eisschlitten bei der Rettung?",o:["Zur Beleuchtung","Zur Lastverteilung auf dem Eis","Zur Wasserförderung","Er wird nicht verwendet"],c:1,e:"Der Eisschlitten verteilt das Gewicht und reduziert den Druck aufs Eis."},
+{m:"grundlagen",q:"Was beschreibt die Rettungskette am Wasser grundsätzlich?",o:["Eine zufällige Reihenfolge von Maßnahmen","Eskalationsstufen von geringerem zu höherem Risiko für die Einsatzkraft","Nur die Reihenfolge der Fahrzeuge","Sie existiert nicht"],c:1,e:"Die Rettungskette ordnet Maßnahmen nach steigendem Risiko."}
+];
+
+const STORAGE_KEY = "wasserrettung_lernapp_v1";
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"done":{}}');
+let currentModuleId = null;
+let quizQueue = [], quizIndex = 0, quizScore = 0, quizAnswered = false, quizFilterModule = "all";
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function updateHero(){
+  const total = MODULES.length;
+  const doneCount = MODULES.filter(m => state.done[m.id]).length;
+  const pct = Math.round((doneCount/total)*100);
+  const circumference = 213.6;
+  const offset = circumference - (circumference * pct/100);
+  document.getElementById("gaugeFill").style.strokeDashoffset = offset;
+  document.getElementById("gaugePct").textContent = pct + "%";
+  document.getElementById("heroSub").textContent = `Ausbildungsstand · ${doneCount} von ${total} Modulen abgeschlossen`;
+}
+function renderModGrid(){
+  const grid = document.getElementById("modGrid");
+  grid.innerHTML = MODULES.map(m => `
+    <div class="mod-card" onclick="openModule('${m.id}')">
+      <div class="mod-num">${m.num}</div>
+      <div class="mod-info"><div class="mtitle">${m.title}</div><div class="msub">${m.sub}</div></div>
+      <div class="mod-check ${state.done[m.id] ? 'done' : ''}"></div>
+    </div>`).join("");
+}
+function openModule(id){
+  const m = MODULES.find(x => x.id === id);
+  currentModuleId = id;
+  document.getElementById("detailNum").textContent = "Modul " + m.num;
+  document.getElementById("detailTitle").textContent = m.title;
+  document.getElementById("detailSub").textContent = m.sub;
+  document.getElementById("detailBody").innerHTML = m.body;
+  const btn = document.getElementById("markDoneBtn");
+  btn.textContent = state.done[id] ? "✓ Durchgearbeitet" : "Als durchgearbeitet markieren";
+  btn.className = "mark-done-btn" + (state.done[id] ? " is-done" : "");
+  showView("detail");
+}
+document.getElementById("markDoneBtn").addEventListener("click", () => {
+  if(!currentModuleId) return;
+  state.done[currentModuleId] = !state.done[currentModuleId];
+  saveState(); openModule(currentModuleId); updateHero(); renderModGrid();
+});
+function showView(name){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + name).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+  document.querySelectorAll(".bn-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+}
+document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.view)));
+function renderQuizFilter(){
+  const wrap = document.getElementById("quizFilter");
+  const chips = [{id:"all", label:"Alle Module"}].concat(MODULES.map(m => ({id:m.id, label:m.title})));
+  wrap.innerHTML = chips.map(c => `<button class="qf-chip ${quizFilterModule===c.id?'active':''}" data-id="${c.id}">${c.label}</button>`).join("");
+  wrap.querySelectorAll(".qf-chip").forEach(chip => chip.addEventListener("click", () => { quizFilterModule = chip.dataset.id; renderQuizFilter(); }));
+}
+function startQuiz(){
+  let pool = quizFilterModule === "all" ? QUIZ.slice() : QUIZ.filter(q => q.m === quizFilterModule);
+  pool = pool.sort(() => Math.random() - 0.5);
+  quizQueue = pool; quizIndex = 0; quizScore = 0;
+  document.getElementById("quizIntro").style.display = "none";
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizRunning").style.display = "block";
+  renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  quizAnswered = false;
+  const q = quizQueue[quizIndex];
+  const modTitle = MODULES.find(m => m.id === q.m).title;
+  const box = document.getElementById("quizRunning");
+  box.innerHTML = `
+    <div class="quiz-progress"><span>Frage ${quizIndex+1} / ${quizQueue.length}</span><span>${modTitle}</span></div>
+    <div class="q-card">
+      <div class="q-text">${q.q}</div>
+      <div id="qOpts">${q.o.map((opt,i) => `<button class="q-opt" data-i="${i}">${opt}</button>`).join("")}</div>
+      <div id="qExplainWrap"></div>
+    </div>`;
+  box.querySelectorAll(".q-opt").forEach(btn => btn.addEventListener("click", () => selectAnswer(parseInt(btn.dataset.i))));
+}
+function selectAnswer(i){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQueue[quizIndex];
+  const opts = document.querySelectorAll(".q-opt");
+  opts.forEach((btn, idx) => {
+    if(idx === q.c) btn.classList.add("correct");
+    else if(idx === i) btn.classList.add("wrong");
+    btn.style.pointerEvents = "none";
+  });
+  if(i === q.c) quizScore++;
+  document.getElementById("qExplainWrap").innerHTML = `
+    <div class="q-explain">${q.e}</div>
+    <button class="q-next-btn" onclick="nextQuizQuestion()">${quizIndex < quizQueue.length-1 ? 'Nächste Frage' : 'Ergebnis anzeigen'}</button>`;
+}
+function nextQuizQuestion(){
+  quizIndex++;
+  if(quizIndex >= quizQueue.length){ showQuizResult(); } else { renderQuizQuestion(); }
+}
+function showQuizResult(){
+  document.getElementById("quizRunning").style.display = "none";
+  const doneBox = document.getElementById("quizDone");
+  doneBox.style.display = "block";
+  const pct = Math.round((quizScore/quizQueue.length)*100);
+  doneBox.innerHTML = `
+    <div class="quiz-result"><div class="score">${quizScore}/${quizQueue.length}</div><div class="score-label">${pct}% richtig beantwortet</div></div>
+    <button class="quiz-start-btn" onclick="resetQuizView()">Neue Prüfung</button>`;
+}
+function resetQuizView(){
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizIntro").style.display = "block";
+}
+renderModGrid(); renderQuizFilter(); updateHero();
+</script>
+</body>
+</html>

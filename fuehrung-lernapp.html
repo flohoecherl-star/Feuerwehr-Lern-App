@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Führung · Lernapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C0E;
+  --bg-elevated:#14181B;
+  --bg-card:#181C1F;
+  --line:#262B2F;
+  --line-soft:#1D2124;
+  --text:#E8E6E1;
+  --text-dim:#8A9199;
+  --text-faint:#565D63;
+  --blue:#5B93C2;
+  --blue-dim:#2E4E68;
+  --amber:#E8A33D;
+  --teal:#3FA79A;
+  --teal-dim:#245852;
+  --red:#C1361B;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+body{padding-bottom:70px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);}
+h1,h2,h3{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em;}
+
+header.hero{padding:22px 18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101316,var(--bg));}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.hero-title h1{font-size:26px;color:var(--text);}
+.hero-title .eyebrow{margin-bottom:4px;}
+.gauge-wrap{position:relative;width:74px;height:74px;flex-shrink:0;}
+.gauge-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:var(--line);stroke-width:7;}
+.gauge-fill{fill:none;stroke:var(--blue);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .6s ease;}
+.gauge-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--blue);}
+.hero-sub{margin-top:10px;font-size:12.5px;color:var(--text-dim);}
+
+nav.tabs{display:flex;overflow-x:auto;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg-elevated);position:sticky;top:0;z-index:20;scrollbar-width:none;}
+nav.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.03em;padding:8px 12px;border-radius:20px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);white-space:nowrap;cursor:pointer;}
+.tab-btn.active{background:var(--blue);color:#08131D;border-color:var(--blue);font-weight:600;}
+
+main{padding:16px 14px 30px;max-width:640px;margin:0 auto;}
+.view{display:none;}
+.view.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.mod-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.mod-card{display:flex;align-items:center;gap:12px;background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;cursor:pointer;}
+.mod-card:active{border-color:var(--blue-dim);}
+.mod-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);width:22px;flex-shrink:0;}
+.mod-info{flex:1;min-width:0;}
+.mod-info .mtitle{font-family:'Oswald',sans-serif;font-size:15px;font-weight:500;color:var(--text);}
+.mod-info .msub{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.mod-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.mod-check.done{background:var(--teal);border-color:var(--teal);}
+.mod-check.done::after{content:'✓';font-size:11px;color:#04211D;font-weight:700;}
+
+.mod-header{margin-bottom:14px;}
+.back-btn{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0 0 10px;display:flex;align-items:center;gap:4px;}
+.mod-header h2{font-size:22px;margin-bottom:4px;}
+.mod-header .msub{font-size:12.5px;color:var(--text-dim);}
+
+.block{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;margin-bottom:10px;}
+.block h3{font-size:14px;color:var(--blue);margin-bottom:8px;letter-spacing:.02em;}
+.block h3.teal{color:var(--teal);}
+.block h3.red{color:var(--red);}
+.block h3.amber{color:var(--amber);}
+.block p{font-size:13.5px;line-height:1.55;color:var(--text);margin-bottom:6px;}
+.block ul{padding-left:18px;margin:4px 0;}
+.block li{font-size:13.5px;line-height:1.6;color:var(--text);margin-bottom:4px;}
+.block li b{color:var(--text);font-weight:600;}
+.block .note{font-size:12px;color:var(--text-dim);margin-top:6px;font-style:italic;}
+.warn-box{border-left:3px solid var(--red);background:rgba(193,54,27,.08);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:8px;}
+.warn-box p{font-size:12.5px;color:#E8B9AC;margin:0;}
+.warn-box .label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:4px;}
+
+.mark-done-btn{width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--teal-dim);background:transparent;color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:.04em;cursor:pointer;margin-top:6px;}
+.mark-done-btn.is-done{background:var(--teal);color:#04211D;border-color:var(--teal);}
+
+.formula{font-family:'IBM Plex Mono',monospace;background:#0E1114;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;color:var(--blue);text-align:center;letter-spacing:.02em;}
+.step-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-soft);}
+.step-item:last-child{border-bottom:none;}
+.step-num{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;color:var(--blue);width:24px;flex-shrink:0;}
+.step-text b{display:block;font-size:13px;color:var(--text);}
+.step-text span{font-size:12px;color:var(--text-dim);}
+.gefahr-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft);}
+.gefahr-item:last-child{border-bottom:none;}
+.gefahr-letter{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--amber);width:26px;flex-shrink:0;}
+.gefahr-text b{display:block;font-size:13px;color:var(--text);}
+.gefahr-text span{font-size:12px;color:var(--text-dim);}
+
+.quiz-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.qf-chip{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:6px 10px;border-radius:14px;border:1px solid var(--line);background:var(--bg-card);color:var(--text-dim);cursor:pointer;}
+.qf-chip.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal-dim);}
+.quiz-start-btn{width:100%;padding:15px;background:var(--blue);color:#08131D;border:none;border-radius:var(--radius);font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+.quiz-progress{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:8px;display:flex;justify-content:space-between;}
+.q-card{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+.q-text{font-size:15px;line-height:1.5;margin-bottom:14px;color:var(--text);font-family:'Oswald',sans-serif;font-weight:400;}
+.q-opt{display:block;width:100%;text-align:left;padding:12px 13px;margin-bottom:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg-elevated);color:var(--text);font-size:13.5px;cursor:pointer;}
+.q-opt.correct{border-color:var(--teal);background:rgba(63,167,154,.12);color:var(--teal);}
+.q-opt.wrong{border-color:var(--red);background:rgba(193,54,27,.12);color:#E8998A;}
+.q-explain{font-size:12.5px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);line-height:1.5;}
+.q-next-btn{width:100%;padding:13px;margin-top:14px;background:var(--teal);color:#04211D;border:none;border-radius:8px;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;cursor:pointer;}
+.quiz-result{text-align:center;padding:30px 16px;}
+.quiz-result .score{font-family:'IBM Plex Mono',monospace;font-size:44px;color:var(--blue);font-weight:600;}
+.quiz-result .score-label{font-size:12px;color:var(--text-dim);margin-top:4px;}
+
+.bottomnav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg-elevated);border-top:1px solid var(--line);z-index:30;}
+.bn-btn{flex:1;padding:10px 4px 12px;text-align:center;background:none;border:none;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.02em;cursor:pointer;}
+.bn-btn.active{color:var(--blue);}
+.bn-icon{display:block;font-size:18px;margin-bottom:3px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-top">
+    <div class="hero-title">
+      <div class="eyebrow">FwDV 100 · Lehrmeinung Bayern / AGBF</div>
+      <h1>Führung</h1>
+    </div>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 80 80">
+        <circle class="gauge-bg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="0"></circle>
+        <circle id="gaugeFill" class="gauge-fill" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"></circle>
+      </svg>
+      <div class="gauge-pct" id="gaugePct">0%</div>
+    </div>
+  </div>
+  <div class="hero-sub" id="heroSub">Ausbildungsstand · 0 von 10 Modulen abgeschlossen</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="uebersicht">Module</button>
+  <button class="tab-btn" data-view="spickzettel">Spickzettel</button>
+  <button class="tab-btn" data-view="quiz">Prüfung</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-uebersicht">
+    <div class="mod-grid" id="modGrid"></div>
+  </section>
+
+  <section class="view" id="view-detail">
+    <button class="back-btn" onclick="showView('uebersicht')">← Alle Module</button>
+    <div class="mod-header">
+      <div class="eyebrow" id="detailNum"></div>
+      <h2 id="detailTitle"></h2>
+      <div class="msub" id="detailSub"></div>
+    </div>
+    <div id="detailBody"></div>
+    <button class="mark-done-btn" id="markDoneBtn">Als durchgearbeitet markieren</button>
+  </section>
+
+  <section class="view" id="view-spickzettel">
+    <div class="block">
+      <h3>Führungsvorgang · 5 Phasen (FwDV 100)</h3>
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><b>Lage feststellen</b><span>Erkundung, Meldungen, eigene Wahrnehmung</span></div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><b>Planung / Entschluss</b><span>Taktische Möglichkeiten abwägen, Priorität setzen</span></div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><b>Befehlsgebung</b><span>Klarer, kurzer Einsatzbefehl</span></div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text"><b>Durchführung</b><span>Überwachen der Ausführung</span></div></div>
+      <div class="step-item"><div class="step-num">5</div><div class="step-text"><b>Erfolgskontrolle</b><span>Rückkopplung, ggf. erneuter Führungsvorgang</span></div></div>
+      <div class="note">Der Führungsvorgang läuft zyklisch – nicht linear einmalig ab.</div>
+    </div>
+
+    <div class="block">
+      <h3>Führungsstufen A–D</h3>
+      <ul>
+        <li><b>A:</b> Trupp-/Staffelführer – bis ca. 5 Kräfte</li>
+        <li><b>B:</b> Gruppenführer – Gruppe/Staffel, bis ca. 9 Kräfte</li>
+        <li><b>C:</b> Verbandsführer (z. B. Zugführer) – mehrere Gruppen/Staffeln</li>
+        <li><b>D:</b> Führungsstab – Großschadenslagen, Kreis-/Führungsstabsebene</li>
+      </ul>
+    </div>
+
+    <div class="block">
+      <h3 class="teal">Taktische Einheiten</h3>
+      <ul>
+        <li><b>Trupp:</b> 2 Personen</li>
+        <li><b>Staffel (1/5):</b> 6 Personen inkl. Führer</li>
+        <li><b>Gruppe (1/8):</b> 9 Personen inkl. Führer</li>
+        <li><b>Zug:</b> i. d. R. 2 Gruppen/Staffeln + Zugtrupp, ca. 22 Kräfte</li>
+        <li><b>Verband:</b> mehrere Züge</li>
+      </ul>
+    </div>
+
+    <div class="block">
+      <h3 class="amber">Führungsspanne</h3>
+      <div class="formula">Faustregel: max. ca. 5 direkt unterstellte Einheiten/Führer</div>
+      <p style="margin-top:8px;">Bei größerer Lage: Einsatzabschnitte (EA) bilden und Führung delegieren, statt die Führungsspanne zu überschreiten.</p>
+    </div>
+
+    <div class="block">
+      <h3 class="red">Gefahren der Einsatzstelle · 4A-1C-4E</h3>
+      <div class="gefahr-item"><div class="gefahr-letter">A</div><div class="gefahr-text"><b>Atemgifte</b></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">A</div><div class="gefahr-text"><b>Angstreaktion</b></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">A</div><div class="gefahr-text"><b>Ausbreitung</b></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">A</div><div class="gefahr-text"><b>Atomare Strahlung</b></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">C</div><div class="gefahr-text"><b>Chemische Stoffe</b></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">E</div><div class="gefahr-text"><b>Explosionsgefahr</b></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">E</div><div class="gefahr-text"><b>Erkrankung / Verletzung</b></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">E</div><div class="gefahr-text"><b>Einsturzgefahr</b></div></div>
+      <div class="gefahr-item"><div class="gefahr-letter">E</div><div class="gefahr-text"><b>Elektrizität</b></div></div>
+    </div>
+
+    <div class="block">
+      <h3>Aufbau Einsatzbefehl</h3>
+      <ul>
+        <li><b>Lage</b> – kurze Einschätzung</li>
+        <li><b>Auftrag</b> – was soll erreicht werden</li>
+        <li><b>Durchführung</b> – wer, mit welchen Mitteln, wie, wo</li>
+        <li><b>Besonderheiten / Versorgung</b> – z. B. Rückzugssignal, Funkkanal</li>
+      </ul>
+      <div class="note">Kurz, klar, eindeutig – Empfänger bestätigt bzw. wiederholt bei Bedarf.</div>
+    </div>
+  </section>
+
+  <section class="view" id="view-quiz">
+    <div id="quizIntro">
+      <div class="block">
+        <h3>Prüfungsmodus</h3>
+        <p>Fragen zu allen Modulen der Führungsausbildung. Auswahl nach Themenbereich möglich.</p>
+      </div>
+      <div class="quiz-filter" id="quizFilter"></div>
+      <button class="quiz-start-btn" onclick="startQuiz()">Prüfung starten</button>
+    </div>
+    <div id="quizRunning" style="display:none;"></div>
+    <div id="quizDone" style="display:none;"></div>
+  </section>
+</main>
+
+<nav class="bottomnav">
+  <button class="bn-btn active" data-view="uebersicht" onclick="showView('uebersicht')"><span class="bn-icon">▤</span>Module</button>
+  <button class="bn-btn" data-view="spickzettel" onclick="showView('spickzettel')"><span class="bn-icon">◈</span>Spickzettel</button>
+  <button class="bn-btn" data-view="quiz" onclick="showView('quiz')"><span class="bn-icon">◉</span>Prüfung</button>
+</nav>
+
+<script>
+const MODULES = [
+{
+  id:"organisation", num:"01", title:"Führungsorganisation & Stufen",
+  sub:"FwDV 100 · Führungsstufen A–D",
+  body:`
+  <div class="block">
+    <h3>FwDV 100 als Grundlage</h3>
+    <p>Die Feuerwehr-Dienstvorschrift 100 „Führung und Leitung im Einsatz" regelt bundeseinheitlich Führungsorganisation, Führungsvorgang und Führungsmittel für alle Führungsebenen der Feuerwehr.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Führungsstufen A–D</h3>
+    <ul>
+      <li><b>Stufe A:</b> Trupp-/Staffelführer, führt bis ca. 5 Kräfte</li>
+      <li><b>Stufe B:</b> Gruppenführer, führt Gruppe/Staffel (bis ca. 9 Kräfte)</li>
+      <li><b>Stufe C:</b> Verbandsführer, z. B. Zugführer – führt mehrere Gruppen/Staffeln (Zug)</li>
+      <li><b>Stufe D:</b> Führungsstab – Großschadenslagen, überörtliche/Kreisebene</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3>Zugführer als Stufe C</h3>
+    <p>Der Zugführer führt einen Zug – in der Regel zwei Gruppen bzw. Staffeln plus Zugtrupp, insgesamt ca. 22 Einsatzkräfte. Er trifft taktische Entscheidungen auf höherer Ebene und koordiniert die unterstellten Gruppenführer.</p>
+  </div>`
+},
+{
+  id:"fuehrungsvorgang", num:"02", title:"Der Führungsvorgang",
+  sub:"5 Phasen · zyklischer Prozess",
+  body:`
+  <div class="block">
+    <h3>Die fünf Phasen</h3>
+    <ul>
+      <li><b>1. Lage feststellen:</b> Erkundung, eingehende Meldungen, eigene Wahrnehmung an der Einsatzstelle</li>
+      <li><b>2. Planung / Entschluss fassen:</b> taktische Handlungsmöglichkeiten abwägen, Priorität Menschenrettung vor Sachwerterhalt</li>
+      <li><b>3. Befehlsgebung:</b> klarer, kurzer Einsatzbefehl an die unterstellten Kräfte</li>
+      <li><b>4. Durchführung:</b> Überwachen der Ausführung, Unterstützung bei Bedarf</li>
+      <li><b>5. Erfolgskontrolle:</b> Wirkung der Maßnahme prüfen, ggf. neuer Führungsvorgang</li>
+    </ul>
+  </div>
+  <div class="block warn-box" style="border:1px solid var(--line);background:var(--bg-card);">
+    <h3 style="color:var(--blue);margin-bottom:6px;">Zyklischer Charakter</h3>
+    <p style="color:var(--text);">Der Führungsvorgang ist kein einmaliger, linearer Ablauf, sondern läuft während des gesamten Einsatzes fortlaufend und parallel für verschiedene Teillagen ab.</p>
+  </div>`
+},
+{
+  id:"einheiten", num:"03", title:"Taktische Einheiten",
+  sub:"Trupp · Staffel · Gruppe · Zug",
+  body:`
+  <div class="block">
+    <h3>Gliederung</h3>
+    <ul>
+      <li><b>Trupp:</b> 2 Personen – kleinste taktische Einheit</li>
+      <li><b>Staffel (1/5):</b> 6 Personen inkl. Führer</li>
+      <li><b>Gruppe (1/8):</b> 9 Personen inkl. Führer</li>
+      <li><b>Zug:</b> i. d. R. 2 Gruppen/Staffeln + Zugtrupp, ca. 22 Kräfte</li>
+      <li><b>Verband:</b> mehrere Züge unter einheitlicher Führung</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Funktionen innerhalb der Gruppe</h3>
+    <ul>
+      <li><b>Gruppenführer:</b> Führung, Erkundung, Befehlsgebung</li>
+      <li><b>Maschinist:</b> Fahrzeug, Pumpe, ggf. Atemschutzüberwachung</li>
+      <li><b>Angriffstrupp:</b> Menschenrettung, Brandbekämpfung, Vorgehen unter Atemschutz</li>
+      <li><b>Wassertrupp:</b> Wasserversorgung, Unterstützung, ggf. Sicherheitstrupp</li>
+      <li><b>Schlauchtrupp:</b> Schlauchleitung Verteiler–Strahlrohr</li>
+      <li><b>Melder:</b> Verbindungsglied zwischen Gruppenführer und weiteren Kräften/Einsatzleitung</li>
+    </ul>
+  </div>`
+},
+{
+  id:"befehl", num:"04", title:"Einsatzbefehl & Befehlsgebung",
+  sub:"Aufbau · klare Kommunikation",
+  body:`
+  <div class="block">
+    <h3>Aufbau eines Einsatzbefehls</h3>
+    <ul>
+      <li><b>Lage:</b> kurze, präzise Einschätzung der Situation</li>
+      <li><b>Auftrag:</b> was konkret erreicht werden soll</li>
+      <li><b>Durchführung:</b> wer setzt mit welchen Mitteln wie und wo den Auftrag um</li>
+      <li><b>Besonderheiten/Versorgung:</b> z. B. Funkkanal, Rückzugssignal, weitere Absprachen</li>
+    </ul>
+  </div>
+  <div class="block warn-box" style="border:1px solid var(--line);background:var(--bg-card);">
+    <h3 style="color:var(--blue);margin-bottom:6px;">Grundsatz der Befehlsgebung</h3>
+    <p style="color:var(--text);">Ein guter Befehl ist kurz, klar und eindeutig formuliert. Der Empfänger bestätigt den Erhalt und wiederholt sicherheitsrelevante Inhalte bei Bedarf, um Missverständnisse auszuschließen.</p>
+  </div>`
+},
+{
+  id:"gefahren", num:"05", title:"Gefahren der Einsatzstelle",
+  sub:"4A-1C-4E aus Führungssicht",
+  body:`
+  <div class="block">
+    <h3 class="red">Systematische Risikobewertung</h3>
+    <p>Das Merkschema 4A-1C-4E dient dem Führer als systematisches Werkzeug, um an jeder Einsatzstelle fortlaufend Gefahren zu identifizieren und Maßnahmen entsprechend anzupassen.</p>
+  </div>
+  <div class="block">
+    <h3>Verantwortung des Führers</h3>
+    <ul>
+      <li>Laufende Abwägung von Risiko und taktischem Nutzen einer Maßnahme</li>
+      <li>Priorität: Eigenschutz der Einsatzkräfte vor Sachwerterhalt</li>
+      <li>Anordnung des Rückzugs, sobald das Risiko den Nutzen übersteigt</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="amber">Rückzugssignal</h3>
+    <p>An der Einsatzstelle wird der Sofortrückzug i. d. R. über ein vorher festgelegtes akustisches Signal (z. B. Dauerton von Horn/Sirene des Einsatzfahrzeugs) angeordnet – allen Kräften vor Einsatzbeginn bekannt zu machen.</p>
+  </div>`
+},
+{
+  id:"zugfuehrung", num:"06", title:"Zugführer & Abschnittsbildung",
+  sub:"Führung mehrerer Gruppen",
+  body:`
+  <div class="block">
+    <h3>Zugtrupp</h3>
+    <p>Der Zugtrupp unterstützt den Zugführer bei Erkundung, Führungsunterstützung, Dokumentation und Kommunikation – vergleichbar einer kleinen Führungsstaffel auf Zugebene.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Einsatzabschnitte (EA)</h3>
+    <p>Bei größeren oder komplexeren Lagen bildet der Zugführer Einsatzabschnitte und überträgt die Führung einzelner Bereiche an Abschnittsleiter, um die eigene Führungsspanne nicht zu überschreiten.</p>
+  </div>
+  <div class="block">
+    <h3 class="amber">Führungsspanne</h3>
+    <div class="formula">Faustregel: max. ca. 5 direkt unterstellte Führer/Einheiten</div>
+    <p style="margin-top:8px;">Wird diese Spanne überschritten, sinkt die Führungsfähigkeit – konsequente Abschnittsbildung ist hier das Mittel der Wahl.</p>
+  </div>`
+},
+{
+  id:"kommunikation", num:"07", title:"Kommunikation & Funk",
+  sub:"BOS-Funk · Meldungen",
+  body:`
+  <div class="block">
+    <h3>Grundsätze Sprechfunkverkehr</h3>
+    <ul>
+      <li>Kurz, klar, eindeutig formulieren</li>
+      <li>Feste Rufnamen nach Fahrzeug/Funktion verwenden</li>
+      <li>Meldungen strukturiert absetzen: Wer meldet – was ist passiert – wo – welche Maßnahmen</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Meldungsarten</h3>
+    <ul>
+      <li><b>Lagemeldung:</b> erste Einschätzung nach Erkundung</li>
+      <li><b>Zwischenmeldung:</b> Fortschritt/Änderung der Lage während des Einsatzes</li>
+      <li><b>Schlussmeldung:</b> Abschluss der Maßnahme, Einsatzende</li>
+    </ul>
+  </div>`
+},
+{
+  id:"planung", num:"08", title:"Alarmierung & Einsatzplanung",
+  sub:"AAO · Objektpläne",
+  body:`
+  <div class="block">
+    <h3>Alarm- und Ausrückeordnung (AAO)</h3>
+    <p>Die AAO legt stichwortabhängig fest, welche Kräfte und Fahrzeuge zu welchem Einsatzstichwort alarmiert werden – Grundlage für eine schnelle, angemessene Erstalarmierung.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Objekt- und Sonderpläne</h3>
+    <p>Bei Erkundung und Lagefeststellung sind vorhandene Objekt- oder Sonderpläne (z. B. für besondere Gebäude, Industrieanlagen) zu berücksichtigen – sie liefern wichtige Informationen zu Zugängen, Gefahren und Löschwasserversorgung.</p>
+  </div>`
+},
+{
+  id:"taktik", num:"09", title:"Taktische Grundsätze",
+  sub:"Prioritäten · Kräfteansatz",
+  body:`
+  <div class="block">
+    <h3>Reihenfolge der Prioritäten</h3>
+    <ul>
+      <li>1. Eigenschutz der Einsatzkräfte</li>
+      <li>2. Menschenrettung</li>
+      <li>3. Tierrettung / Umweltschutz</li>
+      <li>4. Sachwerterhalt</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Kräfteansatz</h3>
+    <p>Der Führer entscheidet über den Einsatz seiner Kräfte auf Basis der Lagefeststellung – Ziel ist ein angemessenes Verhältnis zwischen verfügbaren Mitteln und der Lage, ohne die eigene Führungsspanne oder Sicherheit zu gefährden.</p>
+  </div>`
+},
+{
+  id:"nachbereitung", num:"10", title:"Nachbereitung",
+  sub:"Einsatzabschlussbericht · Kritik",
+  body:`
+  <div class="block">
+    <h3>Einsatzabschlussbericht</h3>
+    <p>Nach Einsatzende dokumentiert der Führer Ablauf, getroffene Maßnahmen und Besonderheiten schriftlich – Grundlage für Statistik, Fahrzeug-/Materialnachbereitung und ggf. weitere Schritte.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Einsatznachbesprechung</h3>
+    <p>Eine strukturierte Manöverkritik im Anschluss an den Einsatz dient der gemeinsamen Reflexion: Was lief gut, was kann verbessert werden – wichtiger Baustein der kontinuierlichen Weiterentwicklung von Führung und Taktik.</p>
+  </div>`
+},
+{
+  id:"fuehrungsmittel", num:"11", title:"Führungsmittel",
+  sub:"Führungstafel · Lagedarstellung",
+  body:`
+  <div class="block">
+    <h3>Klassische Führungsmittel</h3>
+    <ul>
+      <li>Führungstafel/Kräfteübersicht zur Darstellung eingesetzter Einheiten</li>
+      <li>Kartenmaterial und Objektpläne zur räumlichen Orientierung</li>
+      <li>Funkgeräte als zentrales Kommunikationsmittel</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Digitale Lagedarstellung</h3>
+    <p>Zunehmend werden digitale Systeme zur Lagedarstellung genutzt (z. B. Tablet-gestützte Einsatzunterstützung), die Kräfteübersicht, Kartenmaterial und Kommunikation bündeln – ersetzen aber nicht die grundsätzliche Fähigkeit zur Führung mit klassischen Mitteln bei Systemausfall.</p>
+  </div>`
+},
+{
+  id:"grosslage", num:"12", title:"Besondere Einsatzformen",
+  sub:"Großschadenslage · MANV-Grundzüge",
+  body:`
+  <div class="block">
+    <h3>Großschadenslagen</h3>
+    <p>Bei Lagen, die die reguläre Führungsspanne und Kräftestärke übersteigen, werden zusätzliche Führungsebenen (Führungsstab, Stufe D) sowie überörtliche Kräfte alarmiert.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">MANV – Massenanfall von Verletzten (Grundzüge)</h3>
+    <p>Bei einer großen Anzahl Verletzter arbeitet die Feuerwehr eng mit dem Rettungsdienst zusammen: Sichtung, Versorgung und Transport werden strukturiert priorisiert – Führung übernimmt hier vor allem die Koordination der eigenen technischen und logistischen Unterstützung.</p>
+  </div>`
+},
+{
+  id:"stabsarbeit", num:"13", title:"Delegation & Stabsarbeit",
+  sub:"S-Funktionen im Führungsstab",
+  body:`
+  <div class="block">
+    <h3>Grundprinzip der Stabsarbeit</h3>
+    <p>Bei komplexen Lagen unterstützt ein Führungsstab die Einsatzleitung durch arbeitsteilige Bearbeitung einzelner Aufgabenbereiche – bekannt als S-Funktionen (z. B. S1 Personal, S2 Lage, S3 Einsatz, S4 Versorgung, S5 Presse/Öffentlichkeitsarbeit, S6 Kommunikation).</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Vorteil der Delegation</h3>
+    <p>Durch die Aufteilung auf mehrere Personen kann die Führungskraft an der Spitze entlastet werden und sich auf die zentrale Entschlussfassung konzentrieren, statt jedes Detail selbst zu bearbeiten.</p>
+  </div>`
+},
+{
+  id:"menschenfuehrung", num:"14", title:"Menschenführung & Kommunikation",
+  sub:"Führen unter Stress",
+  body:`
+  <div class="block">
+    <h3>Kommunikation unter Einsatzdruck</h3>
+    <ul>
+      <li>Ruhige, klare Ansprache auch in kritischen Situationen</li>
+      <li>Aktives Zuhören bei Meldungen der unterstellten Kräfte</li>
+      <li>Wertschätzender Umgang stärkt Vertrauen und Handlungsbereitschaft im Team</li>
+    </ul>
+  </div>
+  <div class="block">
+    <h3 class="teal">Vorbildfunktion</h3>
+    <p>Die Führungskraft prägt durch eigenes Verhalten maßgeblich die Stimmung und Handlungssicherheit der Gruppe – besonnenes Auftreten wirkt stabilisierend, auch wenn die Lage angespannt ist.</p>
+  </div>`
+},
+{
+  id:"rechtsgrundlagen", num:"15", title:"Rechtsgrundlagen der Einsatzleitung",
+  sub:"Weisungsbefugnis · Verantwortung",
+  body:`
+  <div class="block">
+    <h3>Weisungsbefugnis</h3>
+    <p>Die Einsatzleitung besitzt gegenüber den eingesetzten Kräften Weisungsbefugnis zur Durchführung der Gefahrenabwehr – geregelt durch die jeweiligen Feuerwehrgesetze der Länder.</p>
+  </div>
+  <div class="block">
+    <h3 class="teal">Verantwortung und Amtshilfe</h3>
+    <p>Der Einsatzleiter trägt die Verantwortung für die Maßnahmen an der Einsatzstelle und kann im Rahmen der Gefahrenabwehr auch andere Behörden und Organisationen (z. B. Polizei, THW) im Wege der Amtshilfe einbinden.</p>
+  </div>`
+}
+];
+
+const QUIZ = [
+{m:"organisation",q:"Welche Führungsstufe entspricht dem Gruppenführer?",o:["Stufe A","Stufe B","Stufe C","Stufe D"],c:1,e:"Der Gruppenführer entspricht Führungsstufe B."},
+{m:"organisation",q:"Wie viele Kräfte führt ein Zugführer typischerweise?",o:["ca. 5","ca. 9","ca. 22","ca. 50"],c:2,e:"Ein Zug umfasst i. d. R. zwei Gruppen/Staffeln plus Zugtrupp, ca. 22 Kräfte."},
+{m:"organisation",q:"Welche Führungsstufe ist für Großschadenslagen auf Kreisebene zuständig?",o:["A","B","C","D"],c:3,e:"Stufe D entspricht dem Führungsstab bei Großschadenslagen."},
+{m:"fuehrungsvorgang",q:"Was ist die erste Phase des Führungsvorgangs?",o:["Befehlsgebung","Lage feststellen","Erfolgskontrolle","Durchführung"],c:1,e:"Der Führungsvorgang beginnt mit der Lagefeststellung."},
+{m:"fuehrungsvorgang",q:"Wie viele Phasen umfasst der Führungsvorgang nach FwDV 100?",o:["3","4","5","6"],c:2,e:"Der Führungsvorgang besteht aus 5 Phasen."},
+{m:"fuehrungsvorgang",q:"Ist der Führungsvorgang ein einmaliger, linearer Prozess?",o:["Ja, er läuft nur einmal ab","Nein, er läuft zyklisch und fortlaufend ab","Nur bei kleinen Einsätzen","Nur beim Zugführer"],c:1,e:"Der Führungsvorgang ist zyklisch und begleitet den gesamten Einsatz."},
+{m:"einheiten",q:"Aus wie vielen Personen besteht eine Gruppe (1/8)?",o:["6","8","9","10"],c:2,e:"Eine Gruppe besteht aus 9 Personen inkl. Gruppenführer."},
+{m:"einheiten",q:"Welche Aufgabe hat der Wassertrupp?",o:["Funkverbindung halten","Wasserversorgung sicherstellen, Angriffstrupp unterstützen","Fahrzeug bedienen","Einsatzbefehle erteilen"],c:1,e:"Der Wassertrupp sichert die Wasserversorgung und kann als Sicherheitstrupp fungieren."},
+{m:"einheiten",q:"Wer ist das Verbindungsglied zwischen Gruppenführer und weiteren Kräften?",o:["Maschinist","Melder","Schlauchtrupp","Angriffstrupp"],c:1,e:"Der Melder übernimmt die Verbindung zur Einsatzleitung bzw. weiteren Kräften."},
+{m:"einheiten",q:"Aus wie vielen Kräften besteht ein Trupp?",o:["1","2","3","4"],c:1,e:"Ein Trupp besteht aus 2 Personen."},
+{m:"befehl",q:"Was gehört NICHT zum klassischen Aufbau eines Einsatzbefehls?",o:["Lage","Auftrag","Durchführung","Wetterbericht"],c:3,e:"Lage, Auftrag, Durchführung und ggf. Besonderheiten/Versorgung bilden den Befehl."},
+{m:"befehl",q:"Wie sollte ein Einsatzbefehl formuliert sein?",o:["Möglichst ausführlich mit vielen Details","Kurz, klar und eindeutig","Nur schriftlich","Nur bei Bedarf"],c:1,e:"Kurze, klare, eindeutige Befehle vermeiden Missverständnisse im Einsatzstress."},
+{m:"gefahren",q:"Wozu dient das Schema 4A-1C-4E im Führungsprozess?",o:["Zur Fahrzeugkennzeichnung","Zur systematischen Risikobewertung der Einsatzstelle","Zur Personalplanung","Zur Wasserversorgungsberechnung"],c:1,e:"Es unterstützt die laufende Gefahrenbeurteilung durch den Führer."},
+{m:"gefahren",q:"Was hat für den Führer oberste Priorität?",o:["Sachwerterhalt","Eigenschutz der Einsatzkräfte","Schnelligkeit des Einsatzes","Öffentlichkeitsarbeit"],c:1,e:"Eigenschutz steht über allen anderen Erwägungen."},
+{m:"gefahren",q:"Wie wird der Sofortrückzug an der Einsatzstelle typischerweise signalisiert?",o:["Per SMS","Über ein vorher festgelegtes akustisches Signal","Nur mündlich von Kraft zu Kraft","Es gibt kein einheitliches Signal"],c:1,e:"Ein vorher bekanntes akustisches Signal (z. B. Dauerton) löst den Rückzug aus."},
+{m:"zugfuehrung",q:"Wer unterstützt den Zugführer bei Erkundung und Führungsunterstützung?",o:["Der Melder der Gruppe","Der Zugtrupp","Der Maschinist","Der Wassertrupp"],c:1,e:"Der Zugtrupp ist die Führungsunterstützung auf Zugebene."},
+{m:"zugfuehrung",q:"Wann bildet der Zugführer Einsatzabschnitte?",o:["Immer, unabhängig von der Lage","Bei größeren/komplexeren Lagen zur Wahrung der Führungsspanne","Nur bei Verkehrsunfällen","Nie, das macht nur der Kreisbrandrat"],c:1,e:"Abschnittsbildung dient dazu, die Führungsspanne nicht zu überschreiten."},
+{m:"zugfuehrung",q:"Wie hoch ist die Faustregel für die maximale Führungsspanne?",o:["ca. 2","ca. 5","ca. 10","ca. 20"],c:1,e:"Als Faustregel gelten maximal ca. 5 direkt unterstellte Führer/Einheiten."},
+{m:"kommunikation",q:"Was ist ein Grundsatz des Sprechfunkverkehrs?",o:["Möglichst lange, ausführliche Meldungen","Kurz, klar, eindeutig formulieren","Immer im Dialekt sprechen","Meldungen nur schriftlich absetzen"],c:1,e:"Kurze, eindeutige Meldungen minimieren Missverständnisse."},
+{m:"kommunikation",q:"Welche Meldungsart erfolgt bei Einsatzende?",o:["Lagemeldung","Zwischenmeldung","Schlussmeldung","Erstmeldung"],c:2,e:"Die Schlussmeldung markiert den Abschluss der Maßnahme."},
+{m:"planung",q:"Was regelt die Alarm- und Ausrückeordnung (AAO)?",o:["Die Reinigung der Fahrzeuge","Welche Kräfte zu welchem Stichwort alarmiert werden","Die Gehaltsstufen der Feuerwehrangehörigen","Die Wartungsintervalle der Geräte"],c:1,e:"Die AAO legt stichwortabhängig die Erstalarmierung fest."},
+{m:"planung",q:"Wozu dienen Objekt- und Sonderpläne bei der Erkundung?",o:["Sie sind rein historisch und ohne Nutzen","Sie liefern Informationen zu Zugängen, Gefahren und Löschwasserversorgung","Sie ersetzen die Erkundung vollständig","Sie sind nur für den Rettungsdienst relevant"],c:1,e:"Objektpläne unterstützen die Lagefeststellung mit wichtigen Vorabinformationen."},
+{m:"taktik",q:"Welche Priorität steht laut taktischen Grundsätzen an oberster Stelle?",o:["Sachwerterhalt","Eigenschutz der Einsatzkräfte","Schnelligkeit","Medienarbeit"],c:1,e:"Eigenschutz hat immer höchste Priorität."},
+{m:"taktik",q:"Welche Priorität kommt nach der Menschenrettung?",o:["Sachwerterhalt","Tierrettung / Umweltschutz","Fahrzeugpflege","Berichterstattung"],c:1,e:"Nach der Menschenrettung folgen Tierrettung und Umweltschutz vor dem Sachwerterhalt."},
+{m:"nachbereitung",q:"Wozu dient der Einsatzabschlussbericht?",o:["Nur zur internen Ablage ohne weiteren Nutzen","Dokumentation für Statistik und Nachbereitung von Material/Fahrzeug","Als Nachweis gegenüber der Versicherung des Bürgers","Er ist gesetzlich nicht vorgeschrieben und wird selten genutzt"],c:1,e:"Er bildet die Grundlage für Statistik und Nachbereitung."},
+{m:"nachbereitung",q:"Was ist das Ziel einer Einsatznachbesprechung?",o:["Schuldzuweisung an Einzelpersonen","Strukturierte Reflexion zur Verbesserung von Führung und Taktik","Reine Formsache ohne Wirkung","Nur bei Großschadenslagen sinnvoll"],c:1,e:"Die Manöverkritik dient der gemeinsamen, konstruktiven Weiterentwicklung."},
+{m:"befehl",q:"Was sollte der Empfänger eines sicherheitsrelevanten Befehls tun?",o:["Nichts, der Befehl gilt automatisch","Den Befehl bei Bedarf bestätigen bzw. wiederholen","Den Befehl ignorieren, wenn er unklar ist","Warten, bis eine schriftliche Fassung vorliegt"],c:1,e:"Rückbestätigung sichert das korrekte Verständnis sicherheitsrelevanter Befehle."},
+{m:"einheiten",q:"Wie viele Personen umfasst eine Staffel (1/5)?",o:["5","6","7","8"],c:1,e:"Eine Staffel besteht aus 6 Personen inkl. Staffelführer."},
+{m:"organisation",q:"Was ist die zentrale bundeseinheitliche Vorschrift für Führung im Feuerwehreinsatz?",o:["FwDV 3","FwDV 7","FwDV 100","FwDV 500"],c:2,e:"Die FwDV 100 regelt Führung und Leitung im Einsatz."},
+{m:"gefahren",q:"Wofür steht das 'C' im Schema 4A-1C-4E?",o:["Chemische Stoffe","Cool-Down-Phase","Command","Communication"],c:0,e:"Das 'C' steht für Chemische Stoffe als Gefahrenkategorie."},
+{m:"fuehrungsmittel",q:"Was gehört zu den klassischen Führungsmitteln?",o:["Nur das Mobiltelefon des Führers","Führungstafel, Kartenmaterial, Funkgeräte","Nur digitale Systeme","Die Fahrzeugbeladung"],c:1,e:"Führungstafel, Karten und Funk gehören zu den klassischen Führungsmitteln."},
+{m:"fuehrungsmittel",q:"Was ist beim Einsatz digitaler Lagedarstellung zu beachten?",o:["Klassische Führungsfähigkeit wird überflüssig","Die Fähigkeit zur Führung mit klassischen Mitteln muss bei Systemausfall erhalten bleiben","Digitale Systeme sind fehlerfrei","Sie ersetzen die Weisungsbefugnis"],c:1,e:"Bei Systemausfall muss klassische Führung weiter möglich sein."},
+{m:"grosslage",q:"Was geschieht bei Lagen, die die reguläre Führungsspanne übersteigen?",o:["Die Lage wird ignoriert","Zusätzliche Führungsebenen und überörtliche Kräfte werden alarmiert","Nur ein Trupp bleibt im Einsatz","Der Einsatz wird abgebrochen"],c:1,e:"Bei Großschadenslagen werden zusätzliche Führungsebenen aktiviert."},
+{m:"grosslage",q:"Welche Aufgabe übernimmt die Feuerwehrführung typischerweise bei einem MANV?",o:["Ausschließlich medizinische Versorgung","Koordination der technischen und logistischen Unterstützung","Nur die Verkehrsregelung","Keine besondere Aufgabe"],c:1,e:"Die Feuerwehr koordiniert vor allem technische und logistische Aspekte, medizinische Sichtung liegt beim Rettungsdienst."},
+{m:"stabsarbeit",q:"Wofür steht die S-Funktion S3 im Führungsstab?",o:["Personal","Lage","Einsatz","Presse"],c:2,e:"S3 steht für den Bereich Einsatz im Führungsstab."},
+{m:"stabsarbeit",q:"Welchen Vorteil bietet die Aufteilung in S-Funktionen?",o:["Mehr Verwirrung im Stab","Entlastung der Führungskraft durch arbeitsteilige Bearbeitung","Weniger Kommunikation notwendig","Sie hat keinen praktischen Nutzen"],c:1,e:"Arbeitsteilung entlastet die Führungsspitze bei komplexen Lagen."},
+{m:"stabsarbeit",q:"Wofür steht S5 im klassischen Stabsschema?",o:["Versorgung","Presse-/Öffentlichkeitsarbeit","Kommunikation","Lage"],c:1,e:"S5 ist typischerweise für Presse- und Öffentlichkeitsarbeit zuständig."},
+{m:"menschenfuehrung",q:"Warum ist ruhige Kommunikation unter Einsatzdruck wichtig?",o:["Sie ist unwichtig im Ernstfall","Sie stabilisiert die Handlungsfähigkeit des Teams","Sie verlangsamt den Einsatz unnötig","Nur bei Übungen relevant"],c:1,e:"Ruhige, klare Kommunikation stärkt die Handlungssicherheit der Kräfte."},
+{m:"menschenfuehrung",q:"Welche Wirkung hat das Verhalten der Führungskraft auf die Gruppe?",o:["Keine besondere Wirkung","Es prägt maßgeblich Stimmung und Handlungssicherheit der Gruppe","Nur bei Übungen relevant","Ausschließlich negative Wirkung"],c:1,e:"Die Führungskraft hat Vorbildfunktion und beeinflusst die Gruppenstimmung deutlich."},
+{m:"rechtsgrundlagen",q:"Wodurch ist die Weisungsbefugnis der Einsatzleitung geregelt?",o:["Durch persönliche Absprache vor Ort","Durch die jeweiligen Feuerwehrgesetze der Länder","Durch internationale Normen","Es gibt keine rechtliche Grundlage"],c:1,e:"Die Feuerwehrgesetze der Länder regeln die Weisungsbefugnis."},
+{m:"rechtsgrundlagen",q:"Was versteht man unter Amtshilfe im Einsatzkontext?",o:["Hilfe unter Privatpersonen","Einbindung anderer Behörden/Organisationen im Rahmen der Gefahrenabwehr","Eine Art Versicherung","Eine reine Verwaltungsformalität ohne Praxisbezug"],c:1,e:"Amtshilfe erlaubt die Einbindung weiterer Behörden wie Polizei oder THW."},
+{m:"organisation",q:"Wie viele Gruppen/Staffeln umfasst ein Zug typischerweise?",o:["1","2","3","4"],c:1,e:"Ein Zug besteht i. d. R. aus 2 Gruppen/Staffeln plus Zugtrupp."},
+{m:"fuehrungsvorgang",q:"Was folgt nach der Befehlsgebung im Führungsvorgang?",o:["Lage feststellen","Durchführung","Planung","Erfolgskontrolle direkt ohne Durchführung"],c:1,e:"Nach der Befehlsgebung folgt die Phase der Durchführung."},
+{m:"einheiten",q:"Welche Funktion überwacht typischerweise Pumpe und Wasserversorgung in der Gruppe?",o:["Der Melder","Der Maschinist","Der Angriffstrupp","Der Wassertrupp allein"],c:1,e:"Der Maschinist ist für Fahrzeug und Pumpe zuständig."},
+{m:"befehl",q:"Welche Elemente umfasst der Aufbau eines Einsatzbefehls typischerweise?",o:["Nur die Durchführung","Lage, Auftrag, Durchführung, Besonderheiten/Versorgung","Nur die Lage","Nur der Auftrag ohne weitere Angaben"],c:1,e:"Der vollständige Befehl umfasst alle vier Elemente."},
+{m:"gefahren",q:"Wer trägt die Verantwortung für die laufende Risikoabwägung an der Einsatzstelle?",o:["Jede Einsatzkraft für sich allein","Der jeweilige Führer der Einheit","Nur der Zugführer, unabhängig von der Lage","Niemand explizit"],c:1,e:"Der jeweils zuständige Führer verantwortet die Risikoabwägung."},
+{m:"zugfuehrung",q:"Was passiert, wenn die Führungsspanne eines Zugführers überschritten wird?",o:["Nichts Besonderes","Die Führungsfähigkeit sinkt, Abschnittsbildung wird notwendig","Die Lage wird automatisch einfacher","Der Zugführer wird ausgetauscht"],c:1,e:"Eine überschrittene Führungsspanne mindert die Führungsfähigkeit."},
+{m:"kommunikation",q:"Was ist eine Zwischenmeldung?",o:["Die erste Meldung nach Erkundung","Meldung über Fortschritt/Änderung der Lage während des Einsatzes","Die letzte Meldung vor Einsatzende","Eine Meldung ohne Inhalt"],c:1,e:"Zwischenmeldungen informieren über den laufenden Fortschritt."},
+{m:"planung",q:"Was liefert Erkundungspersonal bei Ankunft an einem Objekt mit Sonderplan?",o:["Keine zusätzlichen Informationen","Wichtige Vorabinformationen zu Zugängen und Gefahren","Nur allgemeine Wetterdaten","Informationen über die Nachbarschaft"],c:1,e:"Sonderpläne liefern wichtige objektspezifische Vorabinformationen."},
+{m:"taktik",q:"Was steht bei der Reihenfolge der Prioritäten nach Menschenrettung an dritter Stelle?",o:["Sachwerterhalt","Tierrettung / Umweltschutz","Pressearbeit","Fahrzeugpflege"],c:1,e:"Nach der Menschenrettung folgen Tierrettung und Umweltschutz."},
+{m:"nachbereitung",q:"Wozu dient eine strukturierte Einsatznachbesprechung vor allem?",o:["Zur Schuldzuweisung","Zur konstruktiven Reflexion und Weiterentwicklung","Zur reinen Dokumentation ohne Diskussion","Sie ist verzichtbar"],c:1,e:"Die Nachbesprechung dient der gemeinsamen, konstruktiven Verbesserung."},
+{m:"einheiten",q:"Wie viele Personen umfasst ein Zug inklusive Zugtrupp ungefähr?",o:["ca. 9","ca. 15","ca. 22","ca. 40"],c:2,e:"Ein Zug umfasst inklusive Zugtrupp ca. 22 Kräfte."},
+{m:"organisation",q:"Auf welcher Führungsstufe ist ein Führungsstab angesiedelt?",o:["A","B","C","D"],c:3,e:"Der Führungsstab entspricht Führungsstufe D."}
+];
+
+const STORAGE_KEY = "fuehrung_lernapp_v1";
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"done":{}}');
+let currentModuleId = null;
+let quizQueue = [], quizIndex = 0, quizScore = 0, quizAnswered = false, quizFilterModule = "all";
+
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+function updateHero(){
+  const total = MODULES.length;
+  const doneCount = MODULES.filter(m => state.done[m.id]).length;
+  const pct = Math.round((doneCount/total)*100);
+  const circumference = 213.6;
+  const offset = circumference - (circumference * pct/100);
+  document.getElementById("gaugeFill").style.strokeDashoffset = offset;
+  document.getElementById("gaugePct").textContent = pct + "%";
+  document.getElementById("heroSub").textContent = `Ausbildungsstand · ${doneCount} von ${total} Modulen abgeschlossen`;
+}
+
+function renderModGrid(){
+  const grid = document.getElementById("modGrid");
+  grid.innerHTML = MODULES.map(m => `
+    <div class="mod-card" onclick="openModule('${m.id}')">
+      <div class="mod-num">${m.num}</div>
+      <div class="mod-info">
+        <div class="mtitle">${m.title}</div>
+        <div class="msub">${m.sub}</div>
+      </div>
+      <div class="mod-check ${state.done[m.id] ? 'done' : ''}"></div>
+    </div>
+  `).join("");
+}
+
+function openModule(id){
+  const m = MODULES.find(x => x.id === id);
+  currentModuleId = id;
+  document.getElementById("detailNum").textContent = "Modul " + m.num;
+  document.getElementById("detailTitle").textContent = m.title;
+  document.getElementById("detailSub").textContent = m.sub;
+  document.getElementById("detailBody").innerHTML = m.body;
+  const btn = document.getElementById("markDoneBtn");
+  btn.textContent = state.done[id] ? "✓ Durchgearbeitet" : "Als durchgearbeitet markieren";
+  btn.className = "mark-done-btn" + (state.done[id] ? " is-done" : "");
+  showView("detail");
+}
+
+document.getElementById("markDoneBtn").addEventListener("click", () => {
+  if(!currentModuleId) return;
+  state.done[currentModuleId] = !state.done[currentModuleId];
+  saveState();
+  openModule(currentModuleId);
+  updateHero();
+  renderModGrid();
+});
+
+function showView(name){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("view-" + name).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+  document.querySelectorAll(".bn-btn").forEach(t => t.classList.toggle("active", t.dataset.view === name));
+}
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => showView(btn.dataset.view));
+});
+
+function renderQuizFilter(){
+  const wrap = document.getElementById("quizFilter");
+  const chips = [{id:"all", label:"Alle Module"}].concat(MODULES.map(m => ({id:m.id, label:m.title})));
+  wrap.innerHTML = chips.map(c => `<button class="qf-chip ${quizFilterModule===c.id?'active':''}" data-id="${c.id}">${c.label}</button>`).join("");
+  wrap.querySelectorAll(".qf-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      quizFilterModule = chip.dataset.id;
+      renderQuizFilter();
+    });
+  });
+}
+
+function startQuiz(){
+  let pool = quizFilterModule === "all" ? QUIZ.slice() : QUIZ.filter(q => q.m === quizFilterModule);
+  pool = pool.sort(() => Math.random() - 0.5);
+  quizQueue = pool;
+  quizIndex = 0;
+  quizScore = 0;
+  document.getElementById("quizIntro").style.display = "none";
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizRunning").style.display = "block";
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+  quizAnswered = false;
+  const q = quizQueue[quizIndex];
+  const modTitle = MODULES.find(m => m.id === q.m).title;
+  const box = document.getElementById("quizRunning");
+  box.innerHTML = `
+    <div class="quiz-progress"><span>Frage ${quizIndex+1} / ${quizQueue.length}</span><span>${modTitle}</span></div>
+    <div class="q-card">
+      <div class="q-text">${q.q}</div>
+      <div id="qOpts">${q.o.map((opt,i) => `<button class="q-opt" data-i="${i}">${opt}</button>`).join("")}</div>
+      <div id="qExplainWrap"></div>
+    </div>
+  `;
+  box.querySelectorAll(".q-opt").forEach(btn => {
+    btn.addEventListener("click", () => selectAnswer(parseInt(btn.dataset.i)));
+  });
+}
+
+function selectAnswer(i){
+  if(quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQueue[quizIndex];
+  const opts = document.querySelectorAll(".q-opt");
+  opts.forEach((btn, idx) => {
+    if(idx === q.c) btn.classList.add("correct");
+    else if(idx === i) btn.classList.add("wrong");
+    btn.style.pointerEvents = "none";
+  });
+  if(i === q.c) quizScore++;
+  document.getElementById("qExplainWrap").innerHTML = `
+    <div class="q-explain">${q.e}</div>
+    <button class="q-next-btn" onclick="nextQuizQuestion()">${quizIndex < quizQueue.length-1 ? 'Nächste Frage' : 'Ergebnis anzeigen'}</button>
+  `;
+}
+
+function nextQuizQuestion(){
+  quizIndex++;
+  if(quizIndex >= quizQueue.length){
+    showQuizResult();
+  } else {
+    renderQuizQuestion();
+  }
+}
+
+function showQuizResult(){
+  document.getElementById("quizRunning").style.display = "none";
+  const doneBox = document.getElementById("quizDone");
+  doneBox.style.display = "block";
+  const pct = Math.round((quizScore/quizQueue.length)*100);
+  doneBox.innerHTML = `
+    <div class="quiz-result">
+      <div class="score">${quizScore}/${quizQueue.length}</div>
+      <div class="score-label">${pct}% richtig beantwortet</div>
+    </div>
+    <button class="quiz-start-btn" onclick="resetQuizView()">Neue Prüfung</button>
+  `;
+}
+
+function resetQuizView(){
+  document.getElementById("quizDone").style.display = "none";
+  document.getElementById("quizIntro").style.display = "block";
+}
+
+renderModGrid();
+renderQuizFilter();
+updateHero();
+</script>
+</body>
+</html>

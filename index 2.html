@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Feuerwehr Lernapps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C0E; --bg-elevated:#14181B; --bg-card:#181C1F;
+  --line:#262B2F; --line-soft:#1D2124;
+  --text:#E8E6E1; --text-dim:#8A9199; --text-faint:#565D63;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);}
+h1,h2,h3{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em;}
+
+header{padding:36px 20px 26px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#101316,var(--bg));text-align:center;}
+header .eyebrow{margin-bottom:8px;}
+header h1{font-size:32px;color:var(--text);letter-spacing:.02em;}
+header p{margin-top:10px;font-size:13.5px;color:var(--text-dim);max-width:420px;margin-left:auto;margin-right:auto;line-height:1.5;}
+
+main{max-width:640px;margin:0 auto;padding:22px 16px 50px;}
+.grid{display:flex;flex-direction:column;gap:12px;}
+
+.app-card{
+  display:flex;align-items:center;gap:14px;
+  background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px 16px;text-decoration:none;color:var(--text);
+  position:relative;overflow:hidden;
+}
+.app-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--accent);
+}
+.app-card:active{border-color:var(--accent);}
+.app-icon{
+  width:46px;height:46px;border-radius:10px;flex-shrink:0;
+  background:color-mix(in srgb, var(--accent) 18%, transparent);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;color:var(--accent);
+}
+.app-info{flex:1;min-width:0;}
+.app-info .atitle{font-family:'Oswald',sans-serif;font-size:17px;font-weight:500;color:var(--text);}
+.app-info .asub{font-size:12px;color:var(--text-dim);margin-top:2px;}
+.app-arrow{font-family:'IBM Plex Mono',monospace;font-size:16px;color:var(--text-faint);flex-shrink:0;}
+
+.app-card[data-app="atemschutz"]{--accent:#E8A33D;}
+.app-card[data-app="fuehrung"]{--accent:#5B93C2;}
+.app-card[data-app="maschinist"]{--accent:#5FA872;}
+.app-card[data-app="kettensaege"]{--accent:#E2622F;}
+.app-card[data-app="thl"]{--accent:#D9A62E;}
+.app-card[data-app="cbrn"]{--accent:#C9D33D;}
+.app-card[data-app="sprechfunker"]{--accent:#4FB6C9;}
+.app-card[data-app="waermebildkamera"]{--accent:#B15FD9;}
+.app-card[data-app="absturzsicherung"]{--accent:#6E85A8;}
+.app-card[data-app="wasserrettung"]{--accent:#5FC9E8;}
+.app-card[data-app="vbbrandschutz"]{--accent:#5B6FD9;}
+.app-card[data-app="erstehilfe"]{--accent:#D9527A;}
+.app-card[data-app="pvbatterie"]{--accent:#8B5FD9;}
+.app-card[data-app="waldbrand"]{--accent:#4A8B3D;}
+.app-card[data-app="gefahrgutadr"]{--accent:#C9633D;}
+
+footer{text-align:center;padding:20px;color:var(--text-faint);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Lehrmeinung Bayern / AGBF</div>
+  <h1>Feuerwehr Lernapps</h1>
+  <p>Fünfzehn Ausbildungsmodule für den Feuerwehrdienst – von Atemschutz bis Gefahrgut. Fortschritt wird lokal auf diesem Gerät gespeichert.</p>
+</header>
+
+<main>
+  <div class="grid">
+    <a class="app-card" data-app="atemschutz" href="atemschutz-lernapp.html">
+      <div class="app-icon">AS</div>
+      <div class="app-info">
+        <div class="atitle">Atemschutz</div>
+        <div class="asub">FwDV 7 · Einsatz, Brandbekämpfung, Belüftung, Schlauchmanagement</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="fuehrung" href="fuehrung-lernapp.html">
+      <div class="app-icon">GF</div>
+      <div class="app-info">
+        <div class="atitle">Führung</div>
+        <div class="asub">FwDV 100 · Gruppenführer & Zugführer</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="maschinist" href="maschinist-lernapp.html">
+      <div class="app-icon">MA</div>
+      <div class="app-info">
+        <div class="atitle">Maschinist</div>
+        <div class="asub">Feuerwehrfahrzeuge & Pumpenkunde</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="kettensaege" href="kettensaege-lernapp.html">
+      <div class="app-icon">KS</div>
+      <div class="app-info">
+        <div class="atitle">Kettensäge</div>
+        <div class="asub">Modulare Kettensägenausbildung</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="thl" href="thl-lernapp.html">
+      <div class="app-icon">TH</div>
+      <div class="app-info">
+        <div class="atitle">THL</div>
+        <div class="asub">Technische Hilfeleistung</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="cbrn" href="cbrn-lernapp.html">
+      <div class="app-icon">AB</div>
+      <div class="app-info">
+        <div class="atitle">CBRN</div>
+        <div class="asub">ABC-Grundlagen & Einsatztaktik</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="sprechfunker" href="sprechfunker-lernapp.html">
+      <div class="app-icon">FU</div>
+      <div class="app-info">
+        <div class="atitle">Sprechfunker</div>
+        <div class="asub">BOS-Funk & Digitalfunk</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="waermebildkamera" href="waermebildkamera-lernapp.html">
+      <div class="app-icon">WB</div>
+      <div class="app-info">
+        <div class="atitle">Wärmebildkamera</div>
+        <div class="asub">Thermografie im Feuerwehreinsatz</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="absturzsicherung" href="absturzsicherung-lernapp.html">
+      <div class="app-icon">HR</div>
+      <div class="app-info">
+        <div class="atitle">Absturzsicherung</div>
+        <div class="asub">Höhenrettung Grundlagen</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="wasserrettung" href="wasserrettung-lernapp.html">
+      <div class="app-icon">WR</div>
+      <div class="app-info">
+        <div class="atitle">Wasser-/Eisrettung</div>
+        <div class="asub">Grundlagen</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="vbbrandschutz" href="vorbeugender-brandschutz-lernapp.html">
+      <div class="app-icon">VB</div>
+      <div class="app-info">
+        <div class="atitle">Vorbeugender Brandschutz</div>
+        <div class="asub">Grundlagen für den Innendienst</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="erstehilfe" href="erste-hilfe-lernapp.html">
+      <div class="app-icon">EH</div>
+      <div class="app-info">
+        <div class="atitle">Erste Hilfe</div>
+        <div class="asub">Notfallmedizin für Einsatzkräfte</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="pvbatterie" href="pv-batteriespeicher-lernapp.html">
+      <div class="app-icon">PV</div>
+      <div class="app-info">
+        <div class="atitle">PV & Batteriespeicher</div>
+        <div class="asub">Photovoltaik- und Speicherbrände</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="waldbrand" href="waldbrand-lernapp.html">
+      <div class="app-icon">WA</div>
+      <div class="app-info">
+        <div class="atitle">Waldbrandbekämpfung</div>
+        <div class="asub">Löschtaktik im Wald</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+
+    <a class="app-card" data-app="gefahrgutadr" href="gefahrgut-adr-lernapp.html">
+      <div class="app-icon">GG</div>
+      <div class="app-info">
+        <div class="atitle">Gefahrgut ADR</div>
+        <div class="asub">Vertiefung Gefahrgutbeförderung</div>
+      </div>
+      <div class="app-arrow">→</div>
+    </a>
+  </div>
+</main>
+
+<footer>Alle Inhalte offline verfügbar · Fortschritt lokal gespeichert</footer>
+
+</body>
+</html>
